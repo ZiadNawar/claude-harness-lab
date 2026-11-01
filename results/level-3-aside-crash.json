@@ -1,0 +1,49 @@
+{
+  "old log aside, no wal.log": {
+    "jobs": [
+      "alpha",
+      "beta"
+    ],
+    "afterEnqueue": [
+      "alpha",
+      "beta",
+      "after"
+    ],
+    "files": [
+      "queue.lock",
+      "wal.log"
+    ]
+  },
+  "old log aside, temp file waiting, no wal.log": {
+    "jobs": [
+      "alpha",
+      "beta"
+    ],
+    "afterEnqueue": [
+      "alpha",
+      "beta",
+      "after"
+    ],
+    "files": [
+      "queue.lock",
+      "wal.log",
+      "wal.log.compact"
+    ]
+  },
+  "new log in place, old log still aside": {
+    "jobs": [
+      "alpha",
+      "beta"
+    ],
+    "afterEnqueue": [
+      "alpha",
+      "beta",
+      "after"
+    ],
+    "files": [
+      "queue.lock",
+      "wal.log",
+      "wal.log.old"
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+seq,at,finishedAt,tool,command,exit,testPass,testFail,blockedBy,blockedMessage,outputChars
+"1","2026-10-30T22:46:08.124Z","2026-10-30T22:46:08.337Z","exec_command","Get-ChildItem -Force | Select-Object Mode,Name; git status --short; git log --oneline -5","","","","harness-policy","rejected: blocked by policy","294"
+"3","2026-10-30T22:46:09.988Z","2026-10-30T22:46:10.184Z","exec_command","dir","","","","harness-policy","rejected: blocked by policy","218"

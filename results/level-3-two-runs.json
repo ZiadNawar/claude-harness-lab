@@ -1,0 +1,205 @@
+{
+  "variants": {
+    "Claude Code 1, as it finished": {
+      "pass": 99,
+      "fail": 7,
+      "failing": [
+        "flipping any byte of the last record only drops that record",
+        "zero bytes after the last record are dropped",
+        "random garbage after the last record is dropped",
+        "a torn tail is removed from the file by the next writer",
+        "damage with committed records after it is refused, not discarded",
+        "compaction waits out a reader that has the log open",
+        "a cancelled job is pruned once past retention"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 140,
+        "silentLoss": 2
+      }
+    },
+    "Claude Code 1 + look-ahead": {
+      "pass": 104,
+      "fail": 2,
+      "failing": [
+        "compaction waits out a reader that has the log open",
+        "a cancelled job is pruned once past retention"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 142,
+        "silentLoss": 0
+      }
+    },
+    "Claude Code 1 + cancelled counts as finished": {
+      "pass": 100,
+      "fail": 6,
+      "failing": [
+        "flipping any byte of the last record only drops that record",
+        "zero bytes after the last record are dropped",
+        "random garbage after the last record is dropped",
+        "a torn tail is removed from the file by the next writer",
+        "damage with committed records after it is refused, not discarded",
+        "compaction waits out a reader that has the log open"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 140,
+        "silentLoss": 2
+      }
+    },
+    "Claude Code 1 + both": {
+      "pass": 105,
+      "fail": 1,
+      "failing": [
+        "compaction waits out a reader that has the log open"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 142,
+        "silentLoss": 0
+      }
+    },
+    "Claude Code 2, as it finished": {
+      "pass": 105,
+      "fail": 1,
+      "failing": [
+        "compaction waits out a reader that has the log open"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 142,
+        "silentLoss": 0
+      }
+    },
+    "Claude Code 2 with Claude Code 1's rule instead of look-ahead": {
+      "pass": 100,
+      "fail": 6,
+      "failing": [
+        "flipping any byte of the last record only drops that record",
+        "zero bytes after the last record are dropped",
+        "random garbage after the last record is dropped",
+        "a torn tail is removed from the file by the next writer",
+        "damage with committed records after it is refused, not discarded",
+        "compaction waits out a reader that has the log open"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 140,
+        "silentLoss": 2
+      }
+    },
+    "Claude Code 2 without cancelled as finished": {
+      "pass": 104,
+      "fail": 2,
+      "failing": [
+        "compaction waits out a reader that has the log open",
+        "a cancelled job is pruned once past retention"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 142,
+        "silentLoss": 0
+      }
+    },
+    "OpenCode 2, as it finished": {
+      "pass": 99,
+      "fail": 7,
+      "failing": [
+        "flipping any byte of the last record only drops that record",
+        "zero bytes after the last record are dropped",
+        "random garbage after the last record is dropped",
+        "a torn tail is removed from the file by the next writer",
+        "damage with committed records after it is refused, not discarded",
+        "compaction waits out a reader that has the log open",
+        "a cancelled job is pruned once past retention"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 140,
+        "silentLoss": 2
+      }
+    },
+    "OpenCode 2 + look-ahead": {
+      "pass": 104,
+      "fail": 2,
+      "failing": [
+        "compaction waits out a reader that has the log open",
+        "a cancelled job is pruned once past retention"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 142,
+        "silentLoss": 0
+      }
+    },
+    "Codex 1, as it finished": {
+      "pass": 101,
+      "fail": 5,
+      "failing": [
+        "flipping any byte of the last record only drops that record",
+        "random garbage after the last record is dropped",
+        "damage with committed records after it is refused, not discarded",
+        "a compaction blocked for too long fails cleanly and the queue keeps working",
+        "a cancelled job is pruned once past retention"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 140,
+        "silentLoss": 2
+      }
+    },
+    "Codex 1 + look-ahead": {
+      "pass": 104,
+      "fail": 2,
+      "failing": [
+        "a compaction blocked for too long fails cleanly and the queue keeps working",
+        "a cancelled job is pruned once past retention"
+      ],
+      "firstRecordFlips": {
+        "flips": 142,
+        "refused": 142,
+        "silentLoss": 0
+      }
+    }
+  },
+  "crossTests": {
+    "own tests of Claude Code 1, on Claude Code 1": {
+      "finished": true,
+      "pass": 99,
+      "fail": 0,
+      "cancelled": 0,
+      "failing": []
+    },
+    "own tests of Claude Code 2, on Claude Code 2": {
+      "finished": true,
+      "pass": 97,
+      "fail": 0,
+      "cancelled": 0,
+      "failing": []
+    },
+    "own tests of Claude Code 1, on Claude Code 2": {
+      "finished": true,
+      "pass": 98,
+      "fail": 1,
+      "cancelled": 0,
+      "failing": [
+        "a worker keeps trying to record a finished job until it is recorded"
+      ]
+    },
+    "own tests of Claude Code 2, on Claude Code 1": {
+      "finished": true,
+      "pass": 91,
+      "fail": 6,
+      "cancelled": 0,
+      "failing": [
+        "a failing automatic compaction is reported and is not retried on every write",
+        "cancelled jobs are pruned like other finished jobs",
+        "a tail of zeros, as a power cut can leave, opens and is replaced",
+        "a last record with a bad checksum is a torn write, even if followed by garbage",
+        "a damaged length field is damage when records follow it, not a cut-off tail (G4)",
+        "a caller cannot change the queue by changing what it passed in"
+      ]
+    }
+  }
+}

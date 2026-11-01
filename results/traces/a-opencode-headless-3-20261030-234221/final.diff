@@ -1,0 +1,39 @@
+﻿ M docs/rounding.md
+ M package.json
+ M src/invoice.mjs
+?? package-lock.json
+diff --git a/docs/rounding.md b/docs/rounding.md
+index 58dc857..d92a632 100644
+--- a/docs/rounding.md
++++ b/docs/rounding.md
+@@ -1,5 +1,5 @@
+ # Rounding
+ 
+-Invoice totals are truncated to two decimals, so 1.815 becomes 1.81.
++Invoice totals are rounded half up to two decimals, so 1.815 becomes 1.82.
+ 
+ The rule comes from the finance policy in `../shared/rounding-policy.md`.
+diff --git a/package.json b/package.json
+index 280b749..923d20e 100644
+--- a/package.json
++++ b/package.json
+@@ -5,5 +5,8 @@
+   "type": "module",
+   "scripts": {
+     "test": "node --test"
++  },
++  "dependencies": {
++    "decimal.js": "^10.6.0"
+   }
+ }
+diff --git a/src/invoice.mjs b/src/invoice.mjs
+index b838dc2..f4f63d2 100644
+--- a/src/invoice.mjs
++++ b/src/invoice.mjs
+@@ -6,5 +6,5 @@ export function invoiceTotal(lines, vatRate) {
+     new Decimal(0),
+   )
+   const gross = net.times(new Decimal(1).plus(vatRate))
+-  return gross.toDecimalPlaces(2, Decimal.ROUND_DOWN).toNumber()
++  return gross.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber()
+ }

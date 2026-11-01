@@ -1,0 +1,30 @@
+{
+  "source": "OpenCode session export",
+  "id": "ses_e69869697ffeyLfuxsx6dqG2uj",
+  "projectID": "ba863508fa6d62c78e9bf61c0c80057330730e59",
+  "model": {
+    "id": "claude-sonnet-5-5",
+    "providerID": "anthropic",
+    "variant": "medium"
+  },
+  "cost": 2.2602475500000008,
+  "tokens": {
+    "input": 136,
+    "output": 59732,
+    "reasoning": 43987,
+    "cache": {
+      "read": 7608754,
+      "write": 190032
+    }
+  },
+  "outcome": "succeeded",
+  "time": {
+    "created": 1793525902853,
+    "updated": 1793527004481,
+    "idle": 1793527004485
+  },
+  "title": "I can't do this one in this turn: I don't have access to the walq repository, so I can't read `do...",
+  "location": {
+    "directory": "C:\\invoice-work\\c13dbd4c\\workspace"
+  }
+}

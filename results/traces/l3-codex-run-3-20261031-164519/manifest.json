@@ -1,0 +1,85 @@
+﻿{
+    "run_id":  "l3-codex-run-3-20261031-164519",
+    "started":  "2026-10-31T16:04:33.8444801Z",
+    "executable":  "codex.exe",
+    "arguments":  [
+                      "exec",
+                      "--ignore-user-config",
+                      "--json",
+                      "--model",
+                      "claude-sonnet-5-5",
+                      "--cd",
+                      "\"C:\\invoice-work\\fa264438\\workspace\"",
+                      "-c",
+                      "model_provider=litellm",
+                      "-c",
+                      "model_providers.litellm.name=LiteLLM",
+                      "-c",
+                      "model_providers.litellm.base_url=http://127.0.0.1:4000/v1",
+                      "-c",
+                      "model_providers.litellm.env_key=LITELLM_API_KEY",
+                      "-c",
+                      "model_providers.litellm.wire_api=responses",
+                      "-c",
+                      "model_providers.litellm.stream_idle_timeout_ms=7200000",
+                      "-c",
+                      "model_providers.litellm.stream_max_retries=5",
+                      "-c",
+                      "model_providers.litellm.request_max_retries=4",
+                      "--sandbox",
+                      "workspace-write",
+                      "-c",
+                      "windows.sandbox=unelevated",
+                      "-c",
+                      "model_reasoning_effort=medium"
+                  ],
+    "locked":  {
+                   "model":  "claude-sonnet-5-5",
+                   "harness":  {
+                                   "claude":  {
+                                                  "version":  "2.1.310 (Claude Code)",
+                                                  "sha256":  "F9A3920634AE3B961EE92C2EB58D0051F5F8852B120983D0A4F57B6A5EFEBA61"
+                                              },
+                                   "codex":  {
+                                                 "version":  "codex-cli 0.162.0-alpha.17.2",
+                                                 "sha256":  "F5521B058CA08E249AFD3B25B4681E81100181D92E73AA6B94BB8E75C2AA487B"
+                                             },
+                                   "opencode":  {
+                                                    "version":  "opencode v2.1.1",
+                                                    "sha256":  "39B9DF25675050B1162E30D09326231BDE84BF6DB9C63605D1A68221BD091517"
+                                                },
+                                   "litellm":  {
+                                                   "version":  "1.106.1",
+                                                   "requirements":  "1FD14BC31FAA2B483967C9C41689A169B8EB99DD924FE851A5B145D751B859B3"
+                                               }
+                               },
+                   "lab":  {
+                               "scripts":  "50F8F2758F1A88ABEAF82EBDE500B20580F28BEF19950AA4CE6A4FC2881905CE",
+                               "litellm_config":  "8AD6D00EBBE5D6C26DE51AC24E80FFECC32D4E00026986DFB0207C03F1FFF639",
+                               "pins":  "2CDBCD720671233BC0AA9FB0DDCFCF1F45263F76277D38F384A1632AA7E8C042"
+                           },
+                   "tasks":  {
+                                 "task-a":  {
+                                                "folder":  "6DFE67A2E78663B1E4763831C85C04FD844407FB18B1BDD1965DDBBB72F65BE0"
+                                            },
+                                 "level-2":  {
+                                                 "fixture":  "D4314DFA6587B8B2253F30553FDBCC1CB55722D7C958035A76365A04A1C9B4D4",
+                                                 "prompt":  "46FC418D18C53F938013BA7A3965A9E407E24DE632B199FDCA9F05423629D64B",
+                                                 "hidden":  "236C769B3914F8E7419DD0A1835D01C3C9E9CC3379BBF29875ECE692E63E2857",
+                                                 "grading":  "153C7373F9F1D1D35ABC8F6341B0A2FA223D362B5ED7BD6D4AB4EFC7AFEFAE6E"
+                                             },
+                                 "level-3":  {
+                                                 "fixture":  "57184189104C685C500D424B6D14D340ADD7053BEC93ECEABA86D926FC4B40D6",
+                                                 "prompt":  "4A1B16077A4162725037F17A1BFA4B9ECF6ABF58B08FAB1A75C2FAC157049294",
+                                                 "hidden":  "2D7AECD63C304377B0E5D745F876C1BE6036EB633792823F31B08BBDFCBDE2BF",
+                                                 "grading":  "B84EC6DCD9916647A3087B5AD2FF45BB55D6D1BFF4404B92C3B1989894E4D203"
+                                             }
+                             },
+                   "host":  {
+                                "windows":  "10.0.26200.0",
+                                "node":  "v24.7.0",
+                                "git":  "git version 2.51.2.windows.1",
+                                "python":  "Python 3.14.0"
+                            }
+               }
+}

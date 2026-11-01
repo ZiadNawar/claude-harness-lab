@@ -1,0 +1,16 @@
+# Only for run-level.ps1 -CaptureRequests. Same as litellm-cached.yaml, except that it sends to
+# the local recorder, to show what the gateway really passes on. Nothing reaches Anthropic.
+model_list:
+  - model_name: claude-sonnet-5-5
+    litellm_params:
+      model: anthropic/claude-sonnet-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      api_base: http://127.0.0.1:4001
+      cache_control_injection_points:
+        - location: message
+          role: system
+        - location: message
+          index: -1
+
+general_settings:
+  master_key: os.environ/LITELLM_API_KEY

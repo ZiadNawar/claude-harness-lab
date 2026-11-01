@@ -1,0 +1,5 @@
+seq,at,finishedAt,tool,command,exit,testPass,testFail,blockedBy,blockedMessage,outputChars
+"1","2026-10-30T23:13:21.608Z","2026-10-30T23:13:21.642Z","Bash","git ls-files | xargs wc -l && cat package.json","","","","harness-permission","This Bash command contains multiple operations. The following part requires approval: xargs wc -l && cat package.json","117"
+"48","2026-10-30T23:14:51.412Z","2026-10-30T23:14:53.054Z","Bash","file src/proration.mjs src/tax.mjs && git diff --stat","0","","","","","496"
+"63","2026-10-30T23:15:35.763Z","2026-10-30T23:15:37.805Z","Bash","npm test 2>&1 | tail -60","0","59","1","","","3100"
+"66","2026-10-30T23:15:41.678Z","2026-10-30T23:15:42.854Z","Bash","npm test 2>&1 | grep -E ""^ℹ (pass|fail)|✖""","0","60","0","","","18"

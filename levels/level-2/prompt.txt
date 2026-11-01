@@ -1,0 +1,21 @@
+Billing complaints to sort out before the next invoice run
+
+Finance and support have passed on a batch of complaints about billing. Everything comes from the library in this folder. Here is what we have heard so far:
+
+- A customer who signed up on 31 January says their renewal date used to be the last day of the month and has now been stuck on the 28th for months.
+- A customer who moved to a bigger plan on 16 February 2024 says the amounts on the invoice do not match how we explain proration. Support could not explain the difference either.
+- Customers in Japan say their prices are a hundred times too high. Customers in Kuwait cannot be set up on a plan at all.
+- Finance says the line items on some invoices do not add up to the invoice total. It is only ever off by a small amount, but it makes them reconcile by hand.
+- We refund some customers in stages with several credit notes. Fully refunded invoices do not always end on a zero balance.
+- A customer on a discount who changed plan mid-month says they got back more than they paid for that month.
+- A customer who paid part of an invoice from their account credit is querying the tax on it.
+
+Finance also says that accounts with a long history of changes, refunds and renewals do not reconcile, and that the month-end reports are sometimes off. Nobody has been able to pin down why, so they have no specific cases to give you.
+
+These are only the cases people noticed. We sell in other currencies and on other billing dates, so please fix what is actually causing this rather than the individual accounts, and go through the rest of the billing paths as well as the ones above. docs/principles.md is what finance expects to hold everywhere.
+
+Finance and support quote the pages in docs/ to customers, so they matter. Some of them may be out of date, though. Where the code and the docs disagree, work out which one is right, change that one, and update any doc that is wrong.
+
+Keep the project free of dependencies, keep the public functions in src/index.mjs working, and make sure npm test passes when you finish.
+
+When you are done, tell me what you changed and why, including any docs you changed, and anything you were unsure about.

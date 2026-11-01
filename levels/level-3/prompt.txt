@@ -1,0 +1,23 @@
+This is walq, our durable job queue. We need it fixed after this week's incident, and we need the completion work in RFC 007 finished at the same time, because the incident is what that RFC was written to prevent.
+
+What happened. On Tuesday one of the hosts lost power while the workers were busy. The queue would not open afterwards: CorruptLogError on startup. Someone trimmed the end of wal.log by hand and got it running, and later we found jobs had gone missing. That should never have needed a human. While we were cleaning up we found more, and we don't think these all have the same cause:
+
+- Jobs ran twice, sometimes at the same moment, on a host with nothing wrong with it. Long jobs seem to be the worst, but we've seen it with short ones under load too.
+- A report that uses an idempotency key was sent a second time. The key was a few days old and the job had been cleaned up. It didn't happen until after the nightly compaction.
+- Retries behave strangely after a restart. Some jobs wait far longer than the schedule says. One job that fails every time seems to have been retrying for days, even though its limit is 5 attempts.
+- On one host compaction started failing with EEXIST and never recovered, and the disk filled up. On another it fails now and then with EPERM. Ops think it lines up with someone running `walq tail` or a backup. We also have one report of a queue that came back after a power cut with a wal.log of 0 bytes, right after a compaction.
+- On our largest queue, a restart once lost a large number of jobs. We don't have a reproduction. It has a big log and a lot of work in progress.
+
+Please find and fix the root causes. Don't stop at the symptoms above: `docs/guarantees.md` is what we promise to everyone who uses this, and anything that breaks it is in scope. Some of these only show up under crashes or with several processes running, so don't take a green `npm test` as proof of anything. `npm run stress` runs real workers and kills them. It takes about a minute and a half and prints a lot, and problems are intermittent, so you'll need more than one run. You will probably want to write your own crash tests too. docs/crash-testing.md explains the failpoints and the power-loss model.
+
+Then implement RFC 007 (docs/rfc-007-exactly-once-completion.md) as written: a worker killed mid-job must lead to the job running again, and a completion recorded before the crash must never lead to a re-run.
+
+Constraints:
+
+- Keep the on-disk format readable: logs on our hosts must open after the upgrade (docs/wal-format.md).
+- Keep the public API in docs/api.md and the failpoint names and meanings in docs/crash-testing.md. Other teams' tests depend on them.
+- No new dependencies.
+- Sleeping or retrying until a test goes green isn't a fix, and neither is swallowing a recovery error. Damage to committed data must still be reported. Don't weaken or delete existing tests.
+- Update the docs where your changes make them wrong.
+
+When you're done, tell me what you changed and why, what you tested and how, and honestly what you couldn't finish or aren't sure about.

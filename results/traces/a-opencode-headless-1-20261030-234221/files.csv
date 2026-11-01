@@ -1,0 +1,9 @@
+path,disk,sizeBefore,sizeAfter,read,readDetail,edit,write,create,delete,search,list,inferred,inferredActions,diskRead,diskFirstReadSeconds,firstStep,lastStep,outside
+".","","","","0","","0","0","0","0","0","1","0","","","","2","2","false"
+"package.json","","","","0","","0","0","0","0","0","0","2","read git-read","","","4","13","false"
+"README.md","","","","0","","0","0","0","0","0","0","1","read","","","4","4","false"
+"docs/rounding.md","","","","0","","1","0","0","0","0","0","1","read","","","5","12","false"
+"src/invoice.mjs","","","","0","","1","0","0","0","0","0","1","read","","","5","11","false"
+"test/invoice-total.mjs","","","","0","","0","0","0","0","0","0","1","read","","","5","5","false"
+"package-lock.json","","","","0","","0","0","0","0","0","0","1","git-read","","","7","7","false"
+"C:/invoice-work/b921abbb/shared/rounding-policy.md","","","","1","","0","0","0","0","0","0","0","","","","9","9","true"

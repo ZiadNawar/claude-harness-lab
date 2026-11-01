@@ -1,0 +1,384 @@
+{
+  "condition": "claude",
+  "workspace": "C:\\invoice-work\\4c615350\\workspace",
+  "ending": {
+    "reason": "completed",
+    "isError": false,
+    "turns": 8,
+    "apiMs": 768242,
+    "ms": 40146
+  },
+  "steps": 122,
+  "toolCalls": 85,
+  "toolsUsed": {
+    "Bash": 45,
+    "Glob": 1,
+    "PowerShell": 2,
+    "Grep": 3,
+    "Edit": 16,
+    "Write": 15,
+    "Read": 1,
+    "Monitor": 1,
+    "ToolSearch": 1
+  },
+  "said": 25,
+  "reasoning": {
+    "blocks": 58,
+    "withVisibleText": 12
+  },
+  "requests": 66,
+  "peakContextTokens": 203471,
+  "outputCharsReturnedToModel": 159730,
+  "commands": 47,
+  "testRuns": [
+    {
+      "seq": 12,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 14,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 15,
+      "exit": null,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 16,
+      "exit": null,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 17,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 58,
+      "exit": 0,
+      "pass": 42,
+      "fail": 0
+    },
+    {
+      "seq": 70,
+      "exit": 0,
+      "pass": 14,
+      "fail": 0
+    },
+    {
+      "seq": 73,
+      "exit": 0,
+      "pass": 18,
+      "fail": 0
+    },
+    {
+      "seq": 80,
+      "exit": 0,
+      "pass": 22,
+      "fail": 1
+    },
+    {
+      "seq": 82,
+      "exit": 0,
+      "pass": 23,
+      "fail": 0
+    },
+    {
+      "seq": 84,
+      "exit": 0,
+      "pass": 3,
+      "fail": 29
+    },
+    {
+      "seq": 87,
+      "exit": 0,
+      "pass": 97,
+      "fail": 0
+    },
+    {
+      "seq": 116,
+      "exit": null,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 117,
+      "exit": 0,
+      "pass": 97,
+      "fail": 0
+    }
+  ],
+  "blocked": [
+    {
+      "seq": 2,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: xargs wc -l && cat package.json",
+      "command": "git ls-files | xargs wc -l && cat package.json"
+    },
+    {
+      "seq": 7,
+      "tool": "Bash",
+      "by": "os-denied",
+      "message": "const NO_DIR_SYNC = new Set(['EPERM', 'EISDIR', 'EINVAL', 'EBADF', 'EACCES']);",
+      "command": "cat docs/api.md docs/operations.md CHANGELOG.md; cat src/frame.mjs src/wal.mjs src/fsops.mjs src/lock.mjs"
+    },
+    {
+      "seq": 15,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: npm test 2>&1; grep -nE \"^(not ok|ok)|^# (tests|pass|fail)|✖|✔\" /tmp/base.txt",
+      "command": "npm test > /tmp/base.txt 2>&1; grep -nE \"^(not ok|ok)|^# (tests|pass|fail)|✖|✔\" /tmp/base.txt | head -60"
+    },
+    {
+      "seq": 16,
+      "tool": "PowerShell",
+      "by": "harness-permission",
+      "message": "Command contains script block that may execute arbitrary code",
+      "command": "npm test *> $env:TEMP\\base.txt; Select-String -Path $env:TEMP\\base.txt -Pattern '^(✖|✔|ℹ (tests|pass|fail))|^\\s*(✖|✔) ' | Select-Object -First 60 | ForEach-Object { $_.Line }"
+    },
+    {
+      "seq": 20,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "Text after the heredoc start on the same line cannot be statically analyzed",
+      "command": "rm base.txt && python3 - <<'EOF' 2>/dev/null || echo nopython\nEOF"
+    },
+    {
+      "seq": 35,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "Contains brace with quote character (expansion obfuscation)",
+      "command": "cat > src/state.mjs <<'EOF'\n// The queue's state is a pure fold over the log. Replaying the same records must\n// give the same state in every process, at any time. Nothing here reads the clock:\n// every time in the state comes from a record.\n\nimport { loadSnapshot } from './snapshot.mjs';\n\nexport function createState() {\n  return { jobs: new Map(), idem: new Map(), seq: 0, completionSeq: 0 };\n}\n\nfunction requeue(job, availableAt, error) {\n  job.status = 'ready';\n  job.availableAt = availableAt;\n  job.lease = null;\n  job.lastError = error ?? job.lastError;\n}\n\n// A record that acts on an attempt only counts while that attempt is the job's\n// current one. Anything else is a late or repeated record, such as a reaper that\n// worked from out-of-date state, and replaying it must not undo what came after.\nfunction holdsLease(job, rec) {\n  return job.status === 'leased' && job.fence === rec.fence;\n}\n\nexport function applyRecord(state, rec) {\n  if (rec.t === 'snapshot') {\n    loadSnapshot(state, rec);\n    return;\n  }\n  if (rec.t === 'enqueue') {\n    state.seq += 1;\n    state.jobs.set(rec.id, {\n      id: rec.id,\n      type: rec.type,\n      payload: rec.payload,\n      key: rec.key ?? null,\n      priority: rec.priority ?? 0,\n      status: 'ready',\n      attempts: 0,\n      fence: 0,\n      maxAttempts: rec.maxAttempts,\n      availableAt: rec.availableAt,\n      lease: null,\n      result: null,\n      lastError: null,\n      enqueuedAt: rec.at,\n      completedAt: null,\n      completionSeq: null,\n      seq: state.seq,\n    });\n    if (rec.key) state.idem.set(rec.key, { id: rec.id, at: rec.at });\n    return;\n  }\n\n  const job = state.jobs.get(rec.id);\n  if (!job) return;\n\n  switch (rec.t) {\n    case 'claim':\n      if (job.status !== 'ready') break;\n      job.status = 'leased';\n      job.attempts += 1;\n      job.fence = rec.fence;\n      job.lease = { worker: rec.worker, fence: rec.fence, until: rec.leaseUntil };\n      break;\n    case 'heartbeat':\n      if (holdsLease(job, rec)) job.lease.until = rec.leaseUntil;\n      break;\n    case 'complete':\n      if (!holdsLease(job, rec)) break;\n      state.completionSeq += 1;\n      job.status = 'done';\n      job.lease = null;\n      job.result = rec.result ?? null;\n      job.completedAt = rec.at;\n      job.completionSeq = state.completionSeq;\n      break;\n    case 'fail':\n    case 'expire':\n      if (!holdsLease(job, rec)) break;\n      requeue(job, rec.at + rec.delayMs, rec.error);\n      break;\n    case 'release':\n      if (!holdsLease(job, rec)) break;\n      requeue(job, rec.at, rec.error);\n      break;\n    case 'dead':\n      if (!holdsLease(job, rec)) break;\n      job.status = 'dead';\n      job.lease = null;\n      job.lastError = rec.error ?? job.lastError;\n      job.completedAt = rec.at;\n      break;\n    case 'cancel':\n      if (job.status !== 'ready' && job.status !== 'leased') break;\n      job.status = 'cancelled';\n      job.lease = null;\n      job.lastError = rec.error ?? job.lastError;\n      job.completedAt = rec.at;\n      break;\n    case 'requeue':\n      if (job.status !== 'dead') break;\n      // The fence stays: a token is never issued twice for a job.\n      job.attempts = 0;\n      job.completedAt = null;\n      requeue(job, rec.at, job.lastError);\n      break;\n    default:\n      // Unknown record types come from a newer writer; ignoring them keeps old\n      // tools able to read the rest of the log.\n      break;\n  }\n}\nEOF\ncat > src/retention.mjs <<'EOF'\n// How long finished jobs stay in the log.\n\nconst TERMINAL = new Set(['done', 'dead', 'cancelled']);\n\nexport function isTerminal(job) {\n  return TERMINAL.has(job.status);\n}\n\nexport function isPastRetention(job, now, config) {\n  return isTerminal(job) && job.completedAt != null && now - job.completedAt >= config.retainCompletedMs;\n}\nEOF\ncat > src/snapshot.mjs <<'EOF'\n// A compacted log starts with one snapshot record holding the state it replaces.\n\nimport { isPastRetention } from './retention.mjs';\n\nfunction serializeJob(job) {\n  return {\n    id: job.id,\n    type: job.type,\n    payload: job.payload,\n    key: job.key,\n    priority: job.priority,\n    status: job.status,\n    attempts: job.attempts,\n    fence: job.fence,\n    maxAttempts: job.maxAttempts,\n    availableAt: job.availableAt,\n    lease: job.lease,\n    result: job.result,\n    lastError: job.lastError,\n    enqueuedAt: job.enqueuedAt,\n    completedAt: job.completedAt,\n    completionSeq: job.completionSeq,\n    seq: job.seq,\n  };\n}\n\n/**\n * The idempotency keys still inside their time to live. A key outlives its job, so\n * for a job that is being dropped the entry keeps what a repeat enqueue is told.\n */\nfunction serializeKeys(state, kept, now, config) {\n  const entries = [];\n  for (const [key, entry] of state.idem) {\n    if (now - entry.at >= config.idempotencyTtlMs) continue;\n    const item = { key, id: entry.id, at: entry.at };\n    if (!kept.has(entry.id)) {\n      const job = state.jobs.get(entry.id);\n      item.status = job?.status ?? entry.status ?? 'done';\n      item.result = job ? job.result : entry.result ?? null;\n    }\n    entries.push(item);\n  }\n  return entries;\n}\n\n/** Builds the snapshot record, dropping terminal jobs past their retention. */\nexport function buildSnapshot(state, now, config) {\n  const kept = new Set();\n  const jobs = [];\n  for (const job of state.jobs.values()) {\n    if (isPastRetention(job, now, config)) continue;\n    kept.add(job.id);\n    jobs.push(serializeJob(job));\n  }\n\n  return {\n    t: 'snapshot',\n    at: now,\n    seq: state.seq,\n    completionSeq: state.completionSeq,\n    jobs,\n    idem: serializeKeys(state, kept, now, config),\n  };\n}\n\nexport function loadSnapshot(state, rec) {\n  state.seq = rec.seq;\n  state.completionSeq = rec.completionSeq ?? 0;\n  state.jobs = new Map();\n  state.idem = new Map();\n  for (const job of rec.jobs) {\n    state.jobs.set(job.id, {\n      ...job,\n      priority: job.priority ?? 0,\n      attempts: job.attempts ?? 0,\n      fence: job.fence ?? job.lease?.fence ?? 0,\n      completionSeq: job.completionSeq ?? null,\n    });\n    // Older snapshots have no key list. The newest job to hold a key owns it.\n    const held = job.key ? state.idem.get(job.key) : null;\n    if (job.key && (!held || job.enqueuedAt >= held.at)) {\n      state.idem.set(job.key, { id: job.id, at: job.enqueuedAt });\n    }\n  }\n  for (const entry of rec.idem ?? []) {\n    const { key, ...rest } = entry;\n    state.idem.set(key, rest);\n  }\n}\nEOF"
+    },
+    {
+      "seq": 58,
+      "tool": "Bash",
+      "by": "os-denied",
+      "message": "if (err.code === 'ENOENT' || err.code === 'EBUSY' || err.code === 'EPERM') return;",
+      "command": "node -e \"\nconst fs=require('fs');\nlet s=fs.readFileSync('src/cli.mjs','utf8');\nconst a=s.indexOf('// Keeps a read handle');\nconst b=s.indexOf('const [command, dir, id]');\nconst neu=\\`// Follows the log without keeping it open between polls: a handle held for as long\n// as tail runs gets in the way of compaction, which has to replace the file. It\n// follows a compaction into the new generation.\nfunction tail(dir) {\n  const file = path.join(dir, WAL_FILE);\n  let generation = null;\n  let offset = HEADER_SIZE;\n  const timer = setInterval(() => {\n    let bytes;\n    try {\n      const fd = fs.openSync(file, 'r');\n      try {\n        const head = Buffer.alloc(HEADER_SIZE);\n        fs.readSync(fd, head, 0, HEADER_SIZE, 0);\n        const header = decodeHeader(head, file);\n        if (header.generation !== generation) {\n          if (generation !== null) console.log(\\\\\\`-- log replaced, generation \\\\\\${header.generation}\\\\\\`);\n          generation = header.generation;\n          offset = HEADER_SIZE;\n        }\n        const size = fs.fstatSync(fd).size;\n        if (size < offset) offset = HEADER_SIZE;\n        if (size <= offset) return;\n        bytes = Buffer.alloc(size - offset);\n        fs.readSync(fd, bytes, 0, bytes.length, offset);\n      } finally {\n        fs.closeSync(fd);\n      }\n    } catch (err) {\n      // Between two polls the file can be mid-replacement; try again next time.\n      if (err.code === 'ENOENT' || err.code === 'EBUSY' || err.code === 'EPERM') return;\n      throw err;\n    }\n    const { frames, end } = scanFrames(bytes, offset, { strict: false });\n    for (const frame of frames) console.log(describeRecord(frame.record));\n    offset = end;\n  }, 200);\n  process.on('SIGINT', () => {\n    clearInterval(timer);\n  });\n}\n\n\\`;\ns=s.slice(0,a)+neu+s.slice(b);\ns=s.replace(\\\"import { HEADER_SIZE, scanFrames } from './frame.mjs';\\\", \\\"import { decodeHeader, HEADER_SIZE, scanFrames } from './frame.mjs';\\\");\nfs.writeFileSync('src/cli.mjs',s);\n\"; sed -n 55,95p src/cli.mjs; npm test 2>&1 | grep -E \"^(✖|ℹ (tests|pass|fail))|^\\s+(✖)\""
+    },
+    {
+      "seq": 62,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "A variable in this command can't be checked before it runs",
+      "command": "node scripts/stress.mjs --seed 1 > \"$TEMP/stress1.txt\" 2>&1; echo exit=$?"
+    },
+    {
+      "seq": 63,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "A variable in this command can't be checked before it runs",
+      "command": "mkdir -p /tmp/wq && cd /c/invoice-work/4c615350/workspace && node scripts/stress.mjs --seed 1 > /tmp/wq/stress1.txt 2>&1; echo exit=$?"
+    },
+    {
+      "seq": 64,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "Output redirection to '/tmp/wq/stress1.txt' needs approval. The path is outside the working directories for this session ('C:\\invoice-work\\4c615350\\workspace'). Allowing runs the command as written.",
+      "command": "node scripts/stress.mjs --seed 1 > /tmp/wq/stress1.txt 2>&1"
+    },
+    {
+      "seq": 77,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "sed command requires approval (contains potentially dangerous operations)",
+      "command": "sed -n '/=== summary ===/,$p' .tmp-out/stress1.txt"
+    },
+    {
+      "seq": 90,
+      "tool": "Bash",
+      "by": "os-denied",
+      "message": "compaction while held failed with EPERM | compaction failed: EPERM: operation not permitted, rename 'C:\\invoice-home\\4c615",
+      "command": "node .tmp-out/eperm.mjs"
+    },
+    {
+      "seq": 92,
+      "tool": "Bash",
+      "by": "os-denied",
+      "message": "compaction while held failed with EPERM | compaction failed: EPERM: operation not permitted, rename 'C:\\invoice-home\\4c615",
+      "command": "node -e \"\nconst fs=require('fs');let s=fs.readFileSync('.tmp-out/eperm.mjs','utf8');\ns=s.replace(\\\"'Open','Read','Read')\\\",\\\"'Open','Read','ReadWrite')\\\");fs.writeFileSync('.tmp-out/eperm.mjs',s);\" && node .tmp-out/eperm.mjs"
+    },
+    {
+      "seq": 105,
+      "tool": "Bash",
+      "by": "os-denied",
+      "message": "-rw-r--r-- 1 Ziad Nawar 197121   1925 Nov  1 10:33 eperm.mjs",
+      "command": "ls -la .tmp-out/ && grep -c \"finished in\" .tmp-out/stress2.txt"
+    },
+    {
+      "seq": 110,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: grep -q \"problem(s)$\" .tmp-out/stress3.txt",
+      "command": "until grep -q \"problem(s)$\" .tmp-out/stress3.txt 2>/dev/null && grep -q \"=== summary\" .tmp-out/stress3.txt; do sleep 3; done; grep -c PROBLEM .tmp-out/stress2.txt .tmp-out/stress3.txt; tail -n 1 .tmp-out/stress2.txt .tmp-out/stress3.txt"
+    },
+    {
+      "seq": 116,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: grep -E \"^(✖|ℹ (tests|pass|fail))\"; WALQ_SIMULATE_POWER_LOSS=1 node scripts/stress.mjs --seed 4 --seconds 60 2>&1; tail -n 1 .tmp-out/stress4.txt",
+      "command": "npm test 2>&1 | grep -E \"^(✖|ℹ (tests|pass|fail))\"; WALQ_SIMULATE_POWER_LOSS=1 node scripts/stress.mjs --seed 4 --seconds 60 > .tmp-out/stress4.txt 2>&1; tail -n 1 .tmp-out/stress4.txt"
+    },
+    {
+      "seq": 118,
+      "tool": "PowerShell",
+      "by": "harness-permission",
+      "message": "Command modifies environment variables",
+      "command": "$env:WALQ_SIMULATE_POWER_LOSS = '1'; node scripts/stress.mjs --seed 4 --seconds 60 > .tmp-out/stress4.txt 2>&1; Get-Content .tmp-out/stress4.txt -Tail 1"
+    },
+    {
+      "seq": 119,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This command requires approval",
+      "command": "WALQ_SIMULATE_POWER_LOSS=1 node scripts/stress.mjs --seed 4 --seconds 60 > .tmp-out/stress4.txt 2>&1"
+    }
+  ],
+  "filesReadThroughATool": [
+    "src/store.mjs"
+  ],
+  "filesEditedThroughATool": [
+    "src/frame.mjs",
+    "src/wal.mjs",
+    "src/compactor.mjs",
+    "src/retention.mjs",
+    "src/snapshot.mjs",
+    "src/state.mjs",
+    "src/store.mjs",
+    "src/backoff.mjs",
+    "src/queue.mjs",
+    "src/records.mjs",
+    "src/cli.mjs",
+    "src/worker/runner.mjs",
+    "test/helpers/crash-child.mjs",
+    "test/helpers/crash.mjs",
+    "test/durability.mjs",
+    "test/concurrency.mjs",
+    "test/completion.mjs",
+    ".tmp-out/eperm.mjs",
+    ".tmp-out/docs-api.cjs",
+    ".tmp-out/docs-rest.cjs"
+  ],
+  "filesNamedInShellCommands": [
+    "docs/crash-testing.md",
+    "docs/guarantees.md",
+    "docs/wal-format.md",
+    "package.json",
+    "README.md",
+    "docs/architecture.md",
+    "docs/compaction.md",
+    "docs/leases-and-retries.md",
+    "docs/rfc-007-exactly-once-completion.md",
+    "CHANGELOG.md",
+    "docs/api.md",
+    "docs/operations.md",
+    "src/frame.mjs",
+    "src/fsops.mjs",
+    "src/lock.mjs",
+    "src/wal.mjs",
+    "src/compactor.mjs",
+    "src/retention.mjs",
+    "src/snapshot.mjs",
+    "src/state.mjs",
+    "src/store.mjs",
+    "src/backoff.mjs",
+    "src/clock.mjs",
+    "src/config.mjs",
+    "src/errors.mjs",
+    "src/failpoints.mjs",
+    "src/idempotency.mjs",
+    "src/lease.mjs",
+    "src/queue.mjs",
+    "src/records.mjs",
+    "src/cli.mjs",
+    "src/index.mjs",
+    "src/inspect.mjs",
+    "src/metrics.mjs",
+    "test/compaction.mjs",
+    "test/failpoints.mjs",
+    "test/recovery.mjs",
+    "scripts/stress-handlers.mjs",
+    "scripts/stress.mjs",
+    "test/frame-format.mjs",
+    "test/leases.mjs",
+    "test/queue-basics.mjs",
+    "test/worker-pool.mjs",
+    "src/crc32.mjs",
+    "src/logger.mjs",
+    "src/worker/pool.mjs",
+    ".gitignore",
+    "test/durability.mjs",
+    "test/concurrency.mjs",
+    "test/completion.mjs"
+  ],
+  "outsidePathsTouched": [],
+  "disk": {
+    "inventoried": true,
+    "created": [
+      "test/helpers/crash-child.mjs",
+      "test/helpers/crash.mjs",
+      "test/durability.mjs",
+      "test/concurrency.mjs",
+      "test/completion.mjs"
+    ],
+    "modified": [
+      "docs/crash-testing.md",
+      "docs/guarantees.md",
+      "docs/wal-format.md",
+      "package.json",
+      "README.md",
+      "docs/architecture.md",
+      "docs/compaction.md",
+      "docs/leases-and-retries.md",
+      "docs/rfc-007-exactly-once-completion.md",
+      "CHANGELOG.md",
+      "docs/api.md",
+      "docs/operations.md",
+      "src/frame.mjs",
+      "src/wal.mjs",
+      "src/compactor.mjs",
+      "src/retention.mjs",
+      "src/snapshot.mjs",
+      "src/state.mjs",
+      "src/store.mjs",
+      "src/backoff.mjs",
+      "src/queue.mjs",
+      "src/records.mjs",
+      "src/cli.mjs",
+      "src/inspect.mjs",
+      "src/worker/runner.mjs",
+      "src/worker/pool.mjs"
+    ],
+    "deleted": [],
+    "filesBefore": 55,
+    "unchangedFiles": 29,
+    "unchangedAndReadOnDisk": 29,
+    "neverReadOnDisk": [],
+    "readOnDiskButNotThroughATool": [
+      "src/worker/child.mjs",
+      "src/worker/protocol.mjs",
+      "src/worker/registry.mjs",
+      "test/backoff-schedule.mjs",
+      "test/helpers/append-then-die.mjs",
+      "test/helpers/handlers.mjs",
+      "test/helpers/tmp.mjs"
+    ]
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "I fixed the root causes behind every symptom you listed and implemented RFC 007, but I haven't committed anything. `npm test` is 97/97 (up from 39/42). Stress seeds 1, 2 and 3 each ran clean, 44 rounds with 0 problems for seeds 2 and 3.\n\n## What was wrong and what I changed\n\n**Tuesday's incident and the missing jobs**\n- **Torn tail never removed:** a cut-off write was ignored but left on disk, and new records were appended behind it. The next open then failed with `CorruptLogError`. The next process to take the lock now truncates the tail before appending.\n- **How the tail is judged:** a bad checksum or zeros at the end count as a cut-off write. Damage with a valid record after it is still `CorruptLogError` with the offset, and the file is left untouched.\n- **Unsynced rename:** compaction and log creation renamed a file whose bytes weren't synced yet. That is how a power cut left a 0-byte `wal.log`. Both now sync before the rename.\n- **Unsynced `complete`:** `complete` returned before its record was durable. It is now synced.\n\n**Duplicate runs**\n- **Heartbeats weren't logged:** they existed only in the worker's memory, so the pool's reaper took live workers' jobs. They now go to the log.\n- **Claim race:** `claim` picked a job before taking the lock, so two processes could claim the same one. `claim`, the reaper and keyed `enqueue` now decide under the lock.\n- **Tokens:** `complete`, `fail` and `heartbeat` never checked that the token was the current one. `requeueDead` also reset the fence, so tokens were reissued. Both are fixed.\n\n**Retries after a restart**\n- **Due time:** replay recomputed a retry's due time from the clock at restart. It now comes from the record.\n- **Snapshots:** they dropped `attempts`, `fence` and `priority`, so compaction reset the attempt count. That is why the failing job never reached `maxAttempts`.\n\n**Idempotency key**\n- Snapshots dropped keys whose job had been pruned. They now carry a key list.\n\n**Compaction**\n- **EEXIST:** a stale `wal.log.compact` blocked every later compaction. Stale files are now cleared, and a failed compaction removes its own temp file.\n- **EPERM:** I reproduced this on this Windows machine by holding `wal.log` open without share-delete. Compaction now fails cleanly, leaves no temp file, and works once the holder lets go.\n- **`walq tail`:** it held the log open and followed a dead file after compaction. It now opens per poll and follows the new generation.\n\n**The big queue that lost jobs**\n- A process read at most 1 MiB of the log at open, so most of a big log was never loaded. New ids then collided with existing jobs. Records over 1 MiB were unreadable. Catch-up now reads the whole log in chunks.\n- Processes also followed a compaction by file size, which broke when the new log was bigger. They now compare the header generation.\n\n**Smaller fixes**\n- A zero-base backoff could produce a NaN due time.\n- Over-limit records are now refused before any write.\n- `cancelled` jobs are now pruned.\n- Auto-compaction now waits for the log to double and backs off after a failure (G14).\n- The reducer now ignores records that don't match the job's current lease, so a stale record can't revive a finished job.\n\n**RFC 007**\n- `complete` returns a receipt with `committed` / `already-committed`.\n- Added `getResult`, `completions` and `reclaimWorker`, plus the `release` record.\n- The pool reclaims a worker's leases as soon as it exits. Pool worker ids are now unique per pool (`w<n>.<pool id>`), because two pools both used `w1` and a reclaim would hit the other pool's worker.\n- Workers retry recording a finished job, keep heartbeating, and take no other job meanwhile. They report `job-fenced` if fenced.\n- No format change beyond `release` and additive snapshot fields. Failpoint names and the existing API are unchanged. I updated the docs, changelog and README, and bumped the version to 0.5.0.\n\n## How I tested\n- **New tests:** 55 in `test/durability.mjs`, `concurrency.mjs` and `completion.mjs`.\n  - Torn tails, mid-log damage, and logs larger than one chunk.\n  - Two queue instances racing at the failpoints.\n  - Child processes killed at the WAL, compaction and job failpoints under `WALQ_SIMULATE_POWER_LOSS`.\n  - A pool test where a worker is killed with a 120 s lease, and a two-pool reclaim test.\n- **Original code:** I ran the durability and concurrency tests against the original `src`. 29 of 32 fail there. The 3 that pass guard behaviour that was already right.\n- **Existing tests:** none weakened or deleted. The 3 that failed at baseline now pass.\n\n## What I couldn't finish or am unsure about\n- **Existing damaged logs:** a log written by the old code with a torn write and later records behind it will still report `CorruptLogError` at that offset. From the bytes alone it can't be told apart from real damage, and G4 says not to repair it away. The operations doc says so.\n- **Interim hand-trimmed log:** if the trimmed host's log was written to between the trim and now, it may be in that state. I haven't seen that log.\n- **Compaction under an external holder:** a backup tool holding the file without share-delete will still make compaction fail until it lets go. That is reported and safe, but I can't fix it on Windows. A holder that denies writers blocks all writes.\n- **Snapshot size:** a snapshot over 64 MiB can't be written, so compaction fails and is reported. That is a limit of the format.\n- **Power-loss stress run:** I did not run `npm run stress` under `WALQ_SIMULATE_POWER_LOSS=1`, because setting the variable needed approval. The power-loss coverage is the targeted tests above.\n- **Stress script:** I didn't change it. Its crash round doesn't use power loss and never checks that a killed job re-runs without waiting for its lease. My tests cover both.\n- **Heartbeat cost:** heartbeats now cost an fsync every `leaseMs/3` per running job. I chose that so other processes and the power-loss model can see them.\n- **Stress runs:** three seeds is more than one run, not a proof, since the failures were intermittent."
+}

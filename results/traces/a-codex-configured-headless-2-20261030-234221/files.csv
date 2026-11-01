@@ -1,0 +1,9 @@
+path,disk,sizeBefore,sizeAfter,read,readDetail,edit,write,create,delete,search,list,inferred,inferredActions,diskRead,diskFirstReadSeconds,firstStep,lastStep,outside
+"package.json","","","","0","","0","0","0","0","0","0","1","read","","","3","3","false"
+"README.md","","","","0","","0","0","0","0","0","0","1","read","","","3","3","false"
+"docs/rounding.md","","","","0","","0","0","0","0","0","0","2","read write","","","5","9","false"
+"src/invoice.mjs","","","","0","","0","0","0","0","0","0","2","read write","","","5","9","false"
+"test/invoice-total.mjs","","","","0","","0","0","0","0","0","0","1","read","","","5","5","false"
+"../shared/rounding-policy.md","","","","0","","0","0","0","0","0","0","1","read","","","8","8","true"
+".npm-cache","","","","0","","0","0","0","0","0","0","1","mentioned","","","8","8","false"
+".gitignore","","","","0","","0","0","0","0","0","0","1","read","","","9","9","false"

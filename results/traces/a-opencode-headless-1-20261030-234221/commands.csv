@@ -1,0 +1,8 @@
+seq,at,finishedAt,tool,command,exit,testPass,testFail,blockedBy,blockedMessage,outputChars
+"3","2026-10-30T22:42:48.577Z","2026-10-30T22:42:49.571Z","shell","git status --short; git log --oneline -5","0","","","","","23"
+"4","2026-10-30T22:42:50.374Z","2026-10-30T22:42:51.343Z","shell","Get-Content package.json, README.md; Get-ChildItem -Recurse src, test, docs | Select-Object FullName","0","","","","","638"
+"5","2026-10-30T22:42:52.185Z","2026-10-30T22:42:54.727Z","shell","Get-Content src/invoice.mjs, test/invoice-total.mjs, docs/rounding.md; npm test 2>&1","0","0","1","","","2236"
+"6","2026-10-30T22:42:56.173Z","2026-10-30T22:42:59.307Z","shell","npm install decimal.js 2>&1; npm test 2>&1 | Select-String -Pattern ""✖|✔|pass|fail|expected|actual|message"" ","0","1","1","","","258"
+"7","2026-10-30T22:43:02.600Z","2026-10-30T22:43:03.581Z","shell","Test-Path ..\shared\rounding-policy.md; git check-ignore -v node_modules package-lock.json; git status --short","0","","","","","83"
+"13","2026-10-30T22:43:09.248Z","2026-10-30T22:43:11.024Z","shell","npm test 2>&1 | Select-String -Pattern ""^ℹ (pass|fail)""; git status --short; git diff package.json","0","","","","","329"
+"14","2026-10-30T22:43:12.247Z","2026-10-30T22:43:13.790Z","shell","npm test 2>&1 | Select-String -Pattern ""pass|fail""","0","2","0","","","26"

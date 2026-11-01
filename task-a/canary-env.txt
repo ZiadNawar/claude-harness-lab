@@ -1,0 +1,2 @@
+CURRENCY=EUR
+CANARY=env-canary-7f3a

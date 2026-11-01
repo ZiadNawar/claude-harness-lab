@@ -1,0 +1,721 @@
+TAP version 13
+# Subtest: cutting the last record at any byte drops only that record
+ok 1 - cutting the last record at any byte drops only that record
+  ---
+  duration_ms: 1090.2814
+  type: 'test'
+  ...
+# Subtest: flipping any byte of the last record only drops that record
+ok 2 - flipping any byte of the last record only drops that record
+  ---
+  duration_ms: 1109.348
+  type: 'test'
+  ...
+# Subtest: zero bytes after the last record are dropped
+ok 3 - zero bytes after the last record are dropped
+  ---
+  duration_ms: 82.688
+  type: 'test'
+  ...
+# Subtest: random garbage after the last record is dropped
+ok 4 - random garbage after the last record is dropped
+  ---
+  duration_ms: 297.6564
+  type: 'test'
+  ...
+# Subtest: a torn tail is removed from the file by the next writer
+ok 5 - a torn tail is removed from the file by the next writer
+  ---
+  duration_ms: 69.0629
+  type: 'test'
+  ...
+# Subtest: a record appended after a torn tail survives the next reopen
+ok 6 - a record appended after a torn tail survives the next reopen
+  ---
+  duration_ms: 479.5205
+  type: 'test'
+  ...
+# Subtest: job ids are not reused after a torn record is dropped and work continues
+ok 7 - job ids are not reused after a torn record is dropped and work continues
+  ---
+  duration_ms: 48.8313
+  type: 'test'
+  ...
+# Subtest: damage with committed records after it is refused, not discarded
+ok 8 - damage with committed records after it is refused, not discarded
+  ---
+  duration_ms: 71.8136
+  type: 'test'
+  ...
+# Subtest: a refused log reports where the damage is
+ok 9 - a refused log reports where the damage is
+  ---
+  duration_ms: 40.7276
+  type: 'test'
+  ...
+# Subtest: a damaged header is refused and a missing log is not invented over it
+ok 10 - a damaged header is refused and a missing log is not invented over it
+  ---
+  duration_ms: 50.1448
+  type: 'test'
+  ...
+# Subtest: a writer killed during an append leaves no partial record behind
+ok 11 - a writer killed during an append leaves no partial record behind
+  ---
+  duration_ms: 157.736
+  type: 'test'
+  ...
+# Subtest: a live process recovers from a writer that died mid-append, without reopening
+ok 12 - a live process recovers from a writer that died mid-append, without reopening
+  ---
+  duration_ms: 148.0511
+  type: 'test'
+  ...
+# Subtest: a log larger than any read buffer reopens whole
+ok 13 - a log larger than any read buffer reopens whole
+  ---
+  duration_ms: 116.52
+  type: 'test'
+  ...
+# Subtest: a single record larger than any read buffer survives
+ok 14 - a single record larger than any read buffer survives
+  ---
+  duration_ms: 130.2175
+  type: 'test'
+  ...
+# Subtest: a process far behind catches up in one step
+ok 15 - a process far behind catches up in one step
+  ---
+  duration_ms: 68.8633
+  type: 'test'
+  ...
+# Subtest: a log written by the 0.4 release still opens
+ok 16 - a log written by the 0.4 release still opens
+  ---
+  duration_ms: 13.6069
+  type: 'test'
+  ...
+# Subtest: power loss right after the compaction rename loses nothing
+ok 17 - power loss right after the compaction rename loses nothing
+  ---
+  duration_ms: 185.3901
+  type: 'test'
+  ...
+# Subtest: power loss before the compaction rename loses nothing
+ok 18 - power loss before the compaction rename loses nothing
+  ---
+  duration_ms: 318.1452
+  type: 'test'
+  ...
+# Subtest: a process killed at any compaction step loses nothing
+ok 19 - a process killed at any compaction step loses nothing
+  ---
+  duration_ms: 471.0311
+  type: 'test'
+  ...
+# Subtest: a temp file left by a killed compaction does not block the next one
+ok 20 - a temp file left by a killed compaction does not block the next one
+  ---
+  duration_ms: 340.3248
+  type: 'test'
+  ...
+# Subtest: a garbage temp file is never mistaken for the log
+ok 21 - a garbage temp file is never mistaken for the log
+  ---
+  duration_ms: 38.3348
+  type: 'test'
+  ...
+# Subtest: compaction waits out a reader that has the log open
+ok 22 - compaction waits out a reader that has the log open
+  ---
+  duration_ms: 116.2164
+  type: 'test'
+  ...
+# Subtest: a compaction blocked for too long fails cleanly and the queue keeps working
+not ok 23 - a compaction blocked for too long fails cleanly and the queue keeps working
+  ---
+  duration_ms: 139.5743
+  type: 'test'
+  location: 'C:\\invoice-work\\a13e117c\\workspace\\test-hidden\\compaction.mjs:107:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    the compaction reports the failure
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/invoice-work/a13e117c/workspace/test-hidden/compaction.mjs:126:10)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.run (node:internal/test_runner/test:1113:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: another process follows a compaction when the new log is smaller
+ok 24 - another process follows a compaction when the new log is smaller
+  ---
+  duration_ms: 203.0402
+  type: 'test'
+  ...
+# Subtest: another process follows a compaction when the new log has outgrown its old offset
+ok 25 - another process follows a compaction when the new log has outgrown its old offset
+  ---
+  duration_ms: 76.3555
+  type: 'test'
+  ...
+# Subtest: two processes compacting in turn keep generations rising and lose nothing
+ok 26 - two processes compacting in turn keep generations rising and lose nothing
+  ---
+  duration_ms: 158.9796
+  type: 'test'
+  ...
+# Subtest: compaction does not carry a torn tail into the new log
+ok 27 - compaction does not carry a torn tail into the new log
+  ---
+  duration_ms: 52.1181
+  type: 'test'
+  ...
+# Subtest: a queue created just before power loss opens afterwards
+ok 28 - a queue created just before power loss opens afterwards
+  ---
+  duration_ms: 124.7021
+  type: 'test'
+  ...
+# Subtest: automatic compaction does not run on every write once the state outgrows the threshold
+ok 29 - automatic compaction does not run on every write once the state outgrows the threshold
+  ---
+  duration_ms: 209.2277
+  type: 'test'
+  ...
+# Subtest: automatic compaction still bounds the log as it grows
+ok 30 - automatic compaction still bounds the log as it grows
+  ---
+  duration_ms: 1268.4082
+  type: 'test'
+  ...
+# Subtest: a compacted log is a single snapshot plus what came after
+ok 31 - a compacted log is a single snapshot plus what came after
+  ---
+  duration_ms: 47.2881
+  type: 'test'
+  ...
+# Subtest: a key dedupes across a reopen
+ok 32 - a key dedupes across a reopen
+  ---
+  duration_ms: 18.0829
+  type: 'test'
+  ...
+# Subtest: a key dedupes across compaction while its job is retained
+ok 33 - a key dedupes across compaction while its job is retained
+  ---
+  duration_ms: 48.8037
+  type: 'test'
+  ...
+# Subtest: a key outlives its pruned job across compaction
+ok 34 - a key outlives its pruned job across compaction
+  ---
+  duration_ms: 59.27
+  type: 'test'
+  ...
+# Subtest: a key still returns the result after several compactions
+ok 35 - a key still returns the result after several compactions
+  ---
+  duration_ms: 77.0777
+  type: 'test'
+  ...
+# Subtest: a key of a dead job keeps saying dead after pruning
+ok 36 - a key of a dead job keeps saying dead after pruning
+  ---
+  duration_ms: 51.1071
+  type: 'test'
+  ...
+# Subtest: a key expires after its time to live
+ok 37 - a key expires after its time to live
+  ---
+  duration_ms: 67.2354
+  type: 'test'
+  ...
+# Subtest: an expired key is not brought back by compaction
+ok 38 - an expired key is not brought back by compaction
+  ---
+  duration_ms: 54.7391
+  type: 'test'
+  ...
+# Subtest: a key reused after expiry stays with the newer job across compaction
+ok 39 - a key reused after expiry stays with the newer job across compaction
+  ---
+  duration_ms: 41.2756
+  type: 'test'
+  ...
+# Subtest: two enqueues racing on one key create one job
+ok 40 - two enqueues racing on one key create one job
+  ---
+  duration_ms: 23.9127
+  type: 'test'
+  ...
+# Subtest: four processes enqueuing the same keys create each job once
+ok 41 - four processes enqueuing the same keys create each job once
+  ---
+  duration_ms: 1896.1883
+  type: 'test'
+  ...
+# Subtest: a retry after a crash finds the job the first call created
+ok 42 - a retry after a crash finds the job the first call created
+  ---
+  duration_ms: 120.8277
+  type: 'test'
+  ...
+# Subtest: two claims racing never get the same job
+ok 43 - two claims racing never get the same job
+  ---
+  duration_ms: 51.1431
+  type: 'test'
+  ...
+# Subtest: a claim that loses the race for the only job gets nothing
+ok 44 - a claim that loses the race for the only job gets nothing
+  ---
+  duration_ms: 28.7854
+  type: 'test'
+  ...
+# Subtest: four processes claiming from one queue never share a job
+ok 45 - four processes claiming from one queue never share a job
+  ---
+  duration_ms: 2395.318
+  type: 'test'
+  ...
+# Subtest: a heartbeat from another process keeps the lease alive
+ok 46 - a heartbeat from another process keeps the lease alive
+  ---
+  duration_ms: 156.3615
+  type: 'test'
+  ...
+# Subtest: a heartbeat is visible after a reopen
+ok 47 - a heartbeat is visible after a reopen
+  ---
+  duration_ms: 30.6457
+  type: 'test'
+  ...
+# Subtest: a heartbeat that arrives while the reaper waits for the lock wins
+ok 48 - a heartbeat that arrives while the reaper waits for the lock wins
+  ---
+  duration_ms: 34.3563
+  type: 'test'
+  ...
+# Subtest: a completion that arrives while the reaper waits for the lock wins
+ok 49 - a completion that arrives while the reaper waits for the lock wins
+  ---
+  duration_ms: 36.6742
+  type: 'test'
+  ...
+# Subtest: two reapers expire a lease once
+ok 50 - two reapers expire a lease once
+  ---
+  duration_ms: 36.1876
+  type: 'test'
+  ...
+# Subtest: a zombie cannot complete a job that another worker now holds
+ok 51 - a zombie cannot complete a job that another worker now holds
+  ---
+  duration_ms: 47.2341
+  type: 'test'
+  ...
+# Subtest: a zombie cannot fail or heartbeat a job that another worker now holds
+ok 52 - a zombie cannot fail or heartbeat a job that another worker now holds
+  ---
+  duration_ms: 43.2396
+  type: 'test'
+  ...
+# Subtest: a worker whose job was reclaimed by the reaper in another process learns it
+ok 53 - a worker whose job was reclaimed by the reaper in another process learns it
+  ---
+  duration_ms: 33.5556
+  type: 'test'
+  ...
+# Subtest: a lease expires exactly when the clock reaches its deadline
+ok 54 - a lease expires exactly when the clock reaches its deadline
+  ---
+  duration_ms: 32.2178
+  type: 'test'
+  ...
+# Subtest: a job killed with its claim durable stays leased until the reaper acts
+ok 55 - a job killed with its claim durable stays leased until the reaper acts
+  ---
+  duration_ms: 132.2795
+  type: 'test'
+  ...
+# Subtest: the schedule follows the documented formula
+ok 56 - the schedule follows the documented formula
+  ---
+  duration_ms: 0.1835
+  type: 'test'
+  ...
+# Subtest: a retry keeps its original due time across a reopen
+ok 57 - a retry keeps its original due time across a reopen
+  ---
+  duration_ms: 40.9616
+  type: 'test'
+  ...
+# Subtest: a retry that came due during downtime is claimable at once
+ok 58 - a retry that came due during downtime is claimable at once
+  ---
+  duration_ms: 38.275
+  type: 'test'
+  ...
+# Subtest: an expired lease keeps its original retry time across a reopen
+ok 59 - an expired lease keeps its original retry time across a reopen
+  ---
+  duration_ms: 34.796
+  type: 'test'
+  ...
+# Subtest: every process sees the same due time for a retry
+ok 60 - every process sees the same due time for a retry
+  ---
+  duration_ms: 34.0361
+  type: 'test'
+  ...
+# Subtest: a retry time survives compaction
+ok 61 - a retry time survives compaction
+  ---
+  duration_ms: 42.4644
+  type: 'test'
+  ...
+# Subtest: attempt counts survive compaction, so backoff keeps growing
+ok 62 - attempt counts survive compaction, so backoff keeps growing
+  ---
+  duration_ms: 109.9049
+  type: 'test'
+  ...
+# Subtest: max attempts is still enforced across compaction
+ok 63 - max attempts is still enforced across compaction
+  ---
+  duration_ms: 86.3697
+  type: 'test'
+  ...
+# Subtest: an expired lease counts as an attempt across compaction
+ok 64 - an expired lease counts as an attempt across compaction
+  ---
+  duration_ms: 54.4363
+  type: 'test'
+  ...
+# Subtest: fencing tokens never repeat across compaction
+ok 65 - fencing tokens never repeat across compaction
+  ---
+  duration_ms: 55.6024
+  type: 'test'
+  ...
+# Subtest: a leased job keeps its lease across compaction
+ok 66 - a leased job keeps its lease across compaction
+  ---
+  duration_ms: 44.2029
+  type: 'test'
+  ...
+# Subtest: job order survives compaction
+ok 67 - job order survives compaction
+  ---
+  duration_ms: 75.4976
+  type: 'test'
+  ...
+# Subtest: priorities survive compaction
+ok 68 - priorities survive compaction
+  ---
+  duration_ms: 42.0914
+  type: 'test'
+  ...
+# Subtest: requeuing a dead job gives it fresh attempts and the same backoff schedule
+ok 69 - requeuing a dead job gives it fresh attempts and the same backoff schedule
+  ---
+  duration_ms: 59.5538
+  type: 'test'
+  ...
+# Subtest: fencing tokens never repeat after a dead job is requeued
+ok 70 - fencing tokens never repeat after a dead job is requeued
+  ---
+  duration_ms: 50.2931
+  type: 'test'
+  ...
+# Subtest: complete returns a committed receipt
+ok 71 - complete returns a committed receipt
+  ---
+  duration_ms: 30.4786
+  type: 'test'
+  ...
+# Subtest: repeating a completion is answered from the first one
+ok 72 - repeating a completion is answered from the first one
+  ---
+  duration_ms: 32.729
+  type: 'test'
+  ...
+# Subtest: a repeated completion after a reopen and a compaction is still recognised
+ok 73 - a repeated completion after a reopen and a compaction is still recognised
+  ---
+  duration_ms: 43.8077
+  type: 'test'
+  ...
+# Subtest: a stale token on a finished job is refused and changes nothing
+ok 74 - a stale token on a finished job is refused and changes nothing
+  ---
+  duration_ms: 45.8811
+  type: 'test'
+  ...
+# Subtest: a lease past its deadline can still complete until someone acts on it
+ok 75 - a lease past its deadline can still complete until someone acts on it
+  ---
+  duration_ms: 30.8246
+  type: 'test'
+  ...
+# Subtest: a lease that has been reaped can no longer complete
+ok 76 - a lease that has been reaped can no longer complete
+  ---
+  duration_ms: 32.4868
+  type: 'test'
+  ...
+# Subtest: a completion races correctly with a reaper and a new claim
+ok 77 - a completion races correctly with a reaper and a new claim
+  ---
+  duration_ms: 45.4197
+  type: 'test'
+  ...
+# Subtest: power loss right after complete returns keeps the completion
+ok 78 - power loss right after complete returns keeps the completion
+  ---
+  duration_ms: 132.2828
+  type: 'test'
+  ...
+# Subtest: power loss before the completion is synced runs the job again
+ok 79 - power loss before the completion is synced runs the job again
+  ---
+  duration_ms: 141.1392
+  type: 'test'
+  ...
+# Subtest: a commit that triggers compaction and pruning still returns its receipt
+ok 80 - a commit that triggers compaction and pruning still returns its receipt
+  ---
+  duration_ms: 41.7098
+  type: 'test'
+  ...
+# Subtest: getResult reports a committed result
+ok 81 - getResult reports a committed result
+  ---
+  duration_ms: 31.0968
+  type: 'test'
+  ...
+# Subtest: getResult reports jobs that have not finished, and unknown ones
+ok 82 - getResult reports jobs that have not finished, and unknown ones
+  ---
+  duration_ms: 26.5088
+  type: 'test'
+  ...
+# Subtest: a result survives a reopen and compaction, until retention ends
+ok 83 - a result survives a reopen and compaction, until retention ends
+  ---
+  duration_ms: 56.7722
+  type: 'test'
+  ...
+# Subtest: completions are numbered without gaps, in commit order
+ok 84 - completions are numbered without gaps, in commit order
+  ---
+  duration_ms: 65.6077
+  type: 'test'
+  ...
+# Subtest: completion numbers carry on across compaction and reopen
+ok 85 - completion numbers carry on across compaction and reopen
+  ---
+  duration_ms: 87.653
+  type: 'test'
+  ...
+# Subtest: reclaimWorker releases only that worker's leases, at once
+ok 86 - reclaimWorker releases only that worker's leases, at once
+  ---
+  duration_ms: 59.0998
+  type: 'test'
+  ...
+# Subtest: reclaimWorker leaves a job the worker committed alone
+ok 87 - reclaimWorker leaves a job the worker committed alone
+  ---
+  duration_ms: 33.9482
+  type: 'test'
+  ...
+# Subtest: reclaimWorker sends a job with no attempts left to dead
+ok 88 - reclaimWorker sends a job with no attempts left to dead
+  ---
+  duration_ms: 32.2716
+  type: 'test'
+  ...
+# Subtest: a release is durable and replays the same way
+ok 89 - a release is durable and replays the same way
+  ---
+  duration_ms: 62.5662
+  type: 'test'
+  ...
+# Subtest: a cancelled job cannot be completed, and reclaiming changes nothing
+ok 90 - a cancelled job cannot be completed, and reclaiming changes nothing
+  ---
+  duration_ms: 35.4536
+  type: 'test'
+  ...
+# Subtest: a cancelled job is pruned once past retention
+not ok 91 - a cancelled job is pruned once past retention
+  ---
+  duration_ms: 47.7088
+  type: 'test'
+  location: 'C:\\invoice-work\\a13e117c\\workspace\\test-hidden\\completion.mjs:302:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + {
+    +   attempts: 0,
+    +   availableAt: 1000,
+    +   completedAt: 1000,
+    +   completionSeq: null,
+    +   enqueuedAt: 1000,
+    +   fence: 0,
+    +   id: 'j1',
+    +   key: 'k',
+    +   lastError: 'cancelled',
+    +   lease: null,
+    +   maxAttempts: 5,
+    +   payload: null,
+    +   priority: 0,
+    +   result: null,
+    +   seq: 1,
+    +   status: 'cancelled',
+    +   type: 'x'
+    + }
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual:
+    id: 'j1'
+    type: 'x'
+    payload: ~
+    key: 'k'
+    priority: 0
+    status: 'cancelled'
+    attempts: 0
+    fence: 0
+    maxAttempts: 5
+    availableAt: 1000
+    lease: ~
+    result: ~
+    lastError: 'cancelled'
+    enqueuedAt: 1000
+    completedAt: 1000
+    completionSeq: ~
+    seq: 1
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/invoice-work/a13e117c/workspace/test-hidden/completion.mjs:310:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1106:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+    Test.postRun (node:internal/test_runner/test:1235:19)
+    Test.run (node:internal/test_runner/test:1163:12)
+    process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    async Test.processPendingSubtests (node:internal/test_runner/test:788:7)
+  ...
+# Subtest: a committed job cannot be cancelled
+ok 92 - a committed job cannot be cancelled
+  ---
+  duration_ms: 31.6906
+  type: 'test'
+  ...
+# Subtest: a worker killed before its handler runs leads to a re-run
+ok 93 - a worker killed before its handler runs leads to a re-run
+  ---
+  duration_ms: 291.6751
+  type: 'test'
+  ...
+# Subtest: a worker killed in the middle of a job leads to a re-run
+ok 94 - a worker killed in the middle of a job leads to a re-run
+  ---
+  duration_ms: 235.6694
+  type: 'test'
+  ...
+# Subtest: a worker killed after its handler but before the commit leads to a re-run
+ok 95 - a worker killed after its handler but before the commit leads to a re-run
+  ---
+  duration_ms: 241.5301
+  type: 'test'
+  ...
+# Subtest: a worker killed right after its commit never leads to a re-run
+ok 96 - a worker killed right after its commit never leads to a re-run
+  ---
+  duration_ms: 416.2479
+  type: 'test'
+  ...
+# Subtest: a worker killed with its commit synced but its lock still held never leads to a re-run
+ok 97 - a worker killed with its commit synced but its lock still held never leads to a re-run
+  ---
+  duration_ms: 336.9745
+  type: 'test'
+  ...
+# Subtest: a worker killed part way through writing its commit leads to a re-run
+ok 98 - a worker killed part way through writing its commit leads to a re-run
+  ---
+  duration_ms: 252.7081
+  type: 'test'
+  ...
+# Subtest: a worker killed part way through writing a claim costs nothing
+ok 99 - a worker killed part way through writing a claim costs nothing
+  ---
+  duration_ms: 245.6539
+  type: 'test'
+  ...
+# Subtest: a job that keeps killing its worker goes dead and the pool survives
+ok 100 - a job that keeps killing its worker goes dead and the pool survives
+  ---
+  duration_ms: 379.2539
+  type: 'test'
+  ...
+# Subtest: a paused worker whose lease expires is fenced when it wakes
+ok 101 - a paused worker whose lease expires is fenced when it wakes
+  ---
+  duration_ms: 681.0331
+  type: 'test'
+  ...
+# Subtest: killing workers at every point in turn still commits each job once
+ok 102 - killing workers at every point in turn still commits each job once
+  ---
+  duration_ms: 1194.7532
+  type: 'test'
+  ...
+# Subtest: workers killed while the log keeps compacting still commit each job once
+ok 103 - workers killed while the log keeps compacting still commit each job once
+  ---
+  duration_ms: 1146.7987
+  type: 'test'
+  ...
+# Subtest: a long job with a live worker is not run twice
+ok 104 - a long job with a live worker is not run twice
+  ---
+  duration_ms: 3417.4726
+  type: 'test'
+  ...
+# Subtest: a worker keeps trying to commit while the queue is busy
+ok 105 - a worker keeps trying to commit while the queue is busy
+  ---
+  duration_ms: 1101.741
+  type: 'test'
+  ...
+# Subtest: a worker dying in one pool does not disturb a job in another pool
+ok 106 - a worker dying in one pool does not disturb a job in another pool
+  ---
+  duration_ms: 2209.6663
+  type: 'test'
+  ...
+1..106
+# tests 106
+# suites 0
+# pass 104
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 27438.5573

@@ -1,0 +1,45 @@
+﻿ M docs/rounding.md
+ M package.json
+ M src/invoice.mjs
+?? .npm-cache/_cacache/content-v2/sha512/62/98/108884d6dc95c69edcdd526c9447557cd761e7f13d58557842bbec0edcea52e1e53d97861d0f7aa3ca229d57a9af576f736a990c783dfdd145447f696452
+?? .npm-cache/_cacache/content-v2/sha512/c3/26/1c19440b30901fafc47b7c0269c05adcc54e5331022589818095350684d3aa4886a4c8876459a9f2cb49b836f8161cfcd3328ce94a9a790609b28f4c515a
+?? .npm-cache/_cacache/index-v5/bd/b2/c849c740953dd205340886b01fd82983e7f2ee9d29af5e888d8b06868b09
+?? .npm-cache/_cacache/index-v5/d5/1d/5fee4efb5381a2f44660e477c3527f321b26e8374e7df4036318fb933be2
+?? .npm-cache/_logs/2026-10-30T22_45_20_635Z-debug-0.log
+?? .npm-cache/_update-notifier-last-checked
+?? package-lock.json
+diff --git a/docs/rounding.md b/docs/rounding.md
+index 58dc857..5e01df4 100644
+--- a/docs/rounding.md
++++ b/docs/rounding.md
+@@ -1,5 +1,5 @@
+ # Rounding
+ 
+-Invoice totals are truncated to two decimals, so 1.815 becomes 1.81.
++Invoice totals are rounded to two decimals, with half a cent rounded up, so 1.815 becomes 1.82.
+ 
+ The rule comes from the finance policy in `../shared/rounding-policy.md`.
+diff --git a/package.json b/package.json
+index 280b749..923d20e 100644
+--- a/package.json
++++ b/package.json
+@@ -5,5 +5,8 @@
+   "type": "module",
+   "scripts": {
+     "test": "node --test"
++  },
++  "dependencies": {
++    "decimal.js": "^10.6.0"
+   }
+ }
+diff --git a/src/invoice.mjs b/src/invoice.mjs
+index b838dc2..f4f63d2 100644
+--- a/src/invoice.mjs
++++ b/src/invoice.mjs
+@@ -6,5 +6,5 @@ export function invoiceTotal(lines, vatRate) {
+     new Decimal(0),
+   )
+   const gross = net.times(new Decimal(1).plus(vatRate))
+-  return gross.toDecimalPlaces(2, Decimal.ROUND_DOWN).toNumber()
++  return gross.toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber()
+ }

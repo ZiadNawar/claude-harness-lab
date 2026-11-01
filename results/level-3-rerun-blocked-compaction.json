@@ -1,0 +1,202 @@
+{
+  "reference": {
+    "node": {
+      "compact": "EPERM",
+      "message": "EPERM: operation not permitted, rename 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\level-3-blocked-Xv38Jy\\wal.log.compact' -> 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\le",
+      "compactSeconds": 3.047,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    },
+    "no-delete": {
+      "compact": "EPERM",
+      "message": "EPERM: operation not permitted, rename 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\level-3-blocked-tzGQnv\\wal.log.compact' -> 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\le",
+      "compactSeconds": 3.012,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    }
+  },
+  "claude": {
+    "node": {
+      "compact": "EPERM",
+      "message": "compaction failed: EPERM: operation not permitted, rename 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\level-3-blocked-hBj5bm\\wal.log.compact' -> 'C:\\Users\\ZIADNA~1\\Ap",
+      "compactSeconds": 0.006,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    },
+    "no-delete": {
+      "compact": "EPERM",
+      "message": "compaction failed: EPERM: operation not permitted, rename 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\level-3-blocked-1X5Y1B\\wal.log.compact' -> 'C:\\Users\\ZIADNA~1\\Ap",
+      "compactSeconds": 0.006,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    }
+  },
+  "opencode": {
+    "node": {
+      "compact": "EPERM",
+      "message": "compaction failed: EPERM: operation not permitted, rename 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\level-3-blocked-MEEGD1\\wal.log.compact' -> 'C:\\Users\\ZIADNA~1\\Ap",
+      "compactSeconds": 0.178,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    },
+    "no-delete": {
+      "compact": "EPERM",
+      "message": "compaction failed: EPERM: operation not permitted, rename 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\level-3-blocked-1I9wuP\\wal.log.compact' -> 'C:\\Users\\ZIADNA~1\\Ap",
+      "compactSeconds": 0.166,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    }
+  },
+  "codex": {
+    "node": {
+      "compact": "ok",
+      "compactSeconds": 0.01,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    },
+    "no-delete": {
+      "compact": "EBUSY",
+      "message": "compaction failed: EBUSY: resource busy or locked, rename 'C:\\Users\\ZIADNA~1\\AppData\\Local\\Temp\\level-3-blocked-qeEtuz\\wal.log' -> 'C:\\Users\\ZIADNA~1\\AppData\\Lo",
+      "compactSeconds": 0.006,
+      "enqueue": "ok",
+      "jobs": [
+        "alpha",
+        "beta",
+        "after"
+      ],
+      "filesWhileHeld": [
+        "queue.lock",
+        "wal.log",
+        "wal.log.compact"
+      ],
+      "filesAfter": [
+        "queue.lock",
+        "wal.log"
+      ],
+      "reopened": [
+        "alpha",
+        "beta",
+        "after"
+      ]
+    }
+  }
+}

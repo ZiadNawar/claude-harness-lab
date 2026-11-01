@@ -1,0 +1,323 @@
+{
+  "condition": "codex",
+  "workspace": "C:\\invoice-work\\a13e117c\\workspace",
+  "ending": {
+    "reason": "turn.completed",
+    "isError": false
+  },
+  "steps": 137,
+  "toolCalls": 59,
+  "toolsUsed": {
+    "exec_command": 59
+  },
+  "said": 31,
+  "reasoning": {
+    "blocks": 47,
+    "withVisibleText": 47
+  },
+  "requests": 56,
+  "peakContextTokens": 139612,
+  "outputCharsReturnedToModel": 175297,
+  "commands": 59,
+  "testRuns": [
+    {
+      "seq": 29,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 32,
+      "exit": 0,
+      "pass": 0,
+      "fail": 8
+    },
+    {
+      "seq": 35,
+      "exit": 1,
+      "pass": 35,
+      "fail": 7
+    },
+    {
+      "seq": 38,
+      "exit": 0,
+      "pass": 0,
+      "fail": 1
+    },
+    {
+      "seq": 91,
+      "exit": 1,
+      "pass": 36,
+      "fail": 6
+    },
+    {
+      "seq": 101,
+      "exit": 1,
+      "pass": 36,
+      "fail": 6
+    },
+    {
+      "seq": 105,
+      "exit": 1,
+      "pass": 36,
+      "fail": 6
+    },
+    {
+      "seq": 107,
+      "exit": 1,
+      "pass": 19,
+      "fail": 1
+    },
+    {
+      "seq": 109,
+      "exit": 0,
+      "pass": 20,
+      "fail": 0
+    },
+    {
+      "seq": 112,
+      "exit": 0,
+      "pass": 20,
+      "fail": 0
+    },
+    {
+      "seq": 114,
+      "exit": null,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 116,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 119,
+      "exit": 0,
+      "pass": 5,
+      "fail": 15
+    },
+    {
+      "seq": 122,
+      "exit": 0,
+      "pass": 0,
+      "fail": 2
+    },
+    {
+      "seq": 124,
+      "exit": 1,
+      "pass": 12,
+      "fail": 1
+    },
+    {
+      "seq": 127,
+      "exit": 1,
+      "pass": 69,
+      "fail": 6
+    },
+    {
+      "seq": 135,
+      "exit": 0,
+      "pass": 69,
+      "fail": 6
+    }
+  ],
+  "blocked": [
+    {
+      "seq": 11,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "const BUSY = new Set(['EBUSY', 'EPERM', 'EACCES', 'EAGAIN', 'EWOULDBLOCK']);",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace\\src; foreach($f in 'frame','wal','fsops','lock'){ \"=== $f\"; gc \"$f.mjs\" }"
+    },
+    {
+      "seq": 15,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "const NO_DIR_SYNC = new Set(['EPERM', 'EISDIR', 'EINVAL', 'EBADF', 'EACCES']);",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace\\src; gc wal.mjs | select -skip 30; \"=== fsops head\"; gc fsops.mjs | select -first 30"
+    },
+    {
+      "seq": 29,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "code: 'EPERM',",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace; npm test 2>&1 | Select-Object -Last 40; gc test\\compaction.mjs; gc test\\leases.mjs"
+    },
+    {
+      "seq": 32,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "EPERM undefined",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace; npm test 2>&1 | Select-String '^(ℹ|✖|✔)' | select -first 40; node -e \"const {spawnSync}=require('child_process');const r=spawnSync(process.execPath,['-v']);console.log(r.error&&r.error.code, String(r.stdout))\"; node --version"
+    },
+    {
+      "seq": 35,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "Error: spawn EPERM",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace; node --test --test-isolation=none test/*.mjs 2>&1 | Select-String '^(ℹ|✖|not ok)|EPERM' | select -first 30"
+    },
+    {
+      "seq": 41,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "spawnSync EPERM null",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace; node -e \"\nconst cp=require('child_process');\nfor (const [n,f] of Object.entries({\n spawnSync:()=>cp.spawnSync(process.execPath,['-v']),\n shell:()=>cp.spawnSync('node -v',{shell:true}),\n inherit:()=>cp.spawnSync(process.execPath,['-v'],{stdio:'inherit'}),\n hide:()=>cp.spawnSync(process.execPath,['-v'],{windowsHide:true}),\n execFile:()=>cp.spawnSync('cmd.exe',['/c','echo hi']),\n})) { const r=f(); console.log(n, r.error&&r.error.code, r.status, String(r.stdout||'').trim()); }\n\"; whoami; (Get-Process -Id $PID).Path"
+    },
+    {
+      "seq": 44,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "throw EPERM",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace; node -e \"\nconst cp=require('child_process');\ntry{const c=cp.fork('-e',[],{execArgv:[],stdio:['inherit','inherit','inherit','ipc']});c.on('exit',x=>console.log('exit',x));c.on('error',e=>console.log('err',e.code))}catch(e){console.log('throw',e.code)}\ntry{const c=cp.spawn(process.execPath,['-v'],{stdio:['ignore','ignore','ignore','ipc']});c.on('exit',x=>console.log('exit2',x));c.on('error',e=>console.log('err2',e.code))}catch(e){console.log('throw2',e.code)}\ntry{const c=cp.spawn(process.execPath,['-v'],{stdio:['ignore','inherit','inherit']});c.on('exit',x=>console.log('exit3',x));c.on('error',e=>console.log('err3',e.code))}catch(e){console.log('throw3',e.code)}\n\""
+    },
+    {
+      "seq": 55,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "rename err EPERM",
+      "command": "cd $env:TEMP; node -e \"\nconst fs=require('fs');fs.mkdirSync('rt',{recursive:true});process.chdir('rt');\nfs.writeFileSync('a','old');fs.writeFileSync('b','new');\nconst fd=fs.openSync('a','r');\ntry{fs.renameSync('b','a');console.log('rename over open reader ok', fs.readFileSync('a','utf8'))}catch(e){console.log('rename err',e.code)}\ntry{fs.writeFileSync('t','x');fs.writeFileSync('t2','y');const f=fs.openSync('t2','wx')}catch(e){console.log('wx',e.code)}\nfs.closeSync(fd);\n\"; rg -n \"w1|w2|workerId\" C:\\invoice-work\\a13e117c\\workspace\\test C:\\invoice-work\\a13e117c\\workspace\\scripts | select -first 10"
+    },
+    {
+      "seq": 57,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "rename-over open target EPERM",
+      "command": "cd $env:TEMP; rm -r -fo rt -ea 0; node -e \"\nconst fs=require('fs');fs.mkdirSync('rt',{recursive:true});process.chdir('rt');\nfunction t(n,f){try{f();console.log(n,'ok')}catch(e){console.log(n,e.code)}}\nfs.writeFileSync('a','old');fs.writeFileSync('b','new');\nlet fd=fs.openSync('a','r');\nt('rename-over open target',()=>fs.renameSync('b','a'));\nt('rename open source aside',()=>fs.renameSync('a','a.old'));\nt('then rename new in',()=>fs.renameSync('b','a'));\nconsole.log(fs.readFileSync('a','utf8'), fs.readFileSync('a.old','utf8'));\nt('unlink open old',()=>fs.rmSync('a.old'));\nfs.closeSync(fd);\nfs.writeFileSync('c','1');fd=fs.openSync('c','r');\nt('unlink open',()=>fs.unlinkSync('c'));fs.closeSync(fd);\n\"; cd ..; rm -r -fo rt; cd C:\\invoice-work\\a13e117c\\workspace; gc src\\snapshot.mjs | select -skip 22 | select -first 12; rg -n \"scanFrom|\\.append\\(|snapshotBytes\" src"
+    },
+    {
+      "seq": 73,
+      "tool": "exec_command",
+      "by": "harness-policy",
+      "message": "rejected: blocked by policy",
+      "command": "cd $env:TEMP; New-Item -ItemType Directory -Force rt2 | Out-Null; cd rt2; node -e \"\nconst fs=require('fs');\nfunction t(n,f){try{f();console.log(n,'ok')}catch(e){console.log(n,e.code)}}\nfs.writeFileSync('a','1');let fd=fs.openSync('a','r');\nt('aside',()=>fs.renameSync('a','a.old'));\nt('unlink old (open)',()=>fs.rmSync('a.old'));\nfs.writeFileSync('n','2');\nt('create over pending name',()=>fs.writeFileSync('a.old','3'));\nt('rename onto name',()=>{fs.writeFileSync('m','4');fs.renameSync('m','a.old')});\nfs.closeSync(fd);\n// reader w/o share-delete via powershell not testable here\n\"; cd ..; Remove-Item -Recurse -Force rt2"
+    },
+    {
+      "seq": 114,
+      "tool": "exec_command",
+      "by": "harness-policy",
+      "message": "rejected: blocked by policy",
+      "command": "cd C:\\invoice-work\\a13e117c\\workspace; $d=Join-Path $env:TEMP 'walq-orig'; if(Test-Path $d){Remove-Item -Recurse -Force -LiteralPath $d}; New-Item -ItemType Directory $d | Out-Null; git archive HEAD | tar -x -C $d; Copy-Item test\\durability.mjs,test\\helpers\\crash.mjs -Destination $d\\test -Force; Copy-Item test\\helpers\\crash.mjs $d\\test\\helpers\\crash.mjs -Force; Copy-Item test\\durability.mjs $d\\test\\durability.mjs -Force; Remove-Item $d\\test\\crash.mjs -ea 0; cd $d; node --test --test-isolation=none test/durability.mjs 2>&1 | Select-String '^(ℹ (pass|fail)|✖ )' | select -first 30"
+    }
+  ],
+  "filesReadThroughATool": [],
+  "filesEditedThroughATool": [],
+  "filesNamedInShellCommands": [
+    ".",
+    "package.json",
+    "docs/api.md",
+    "src",
+    "../failpoints.mjs",
+    "src/worker",
+    "scripts/stress-handlers.mjs",
+    "scripts/stress.mjs",
+    "test/recovery.mjs",
+    "test/compaction.mjs",
+    "test/leases.mjs",
+    "CHANGELOG.md",
+    "README.md",
+    "src/cli.mjs",
+    "src/crc32.mjs",
+    "test/failpoints.mjs",
+    "test/frame-format.mjs",
+    "test/worker-pool.mjs",
+    "test/queue-basics.mjs",
+    "scripts",
+    "test",
+    "src/snapshot.mjs",
+    "src/frame.mjs",
+    ".gitignore",
+    "src/queue.mjs",
+    "docs/compaction.md",
+    "src/compactor.mjs",
+    "src/store.mjs",
+    "src/wal.mjs",
+    "src/backoff.mjs",
+    "src/records.mjs",
+    "src/retention.mjs",
+    "src/state.mjs",
+    "src/fsops.mjs",
+    "src/inspect.mjs",
+    "src/worker/pool.mjs",
+    "src/worker/runner.mjs",
+    "src/index.mjs",
+    "test/helpers/crash.mjs",
+    "test/durability.mjs",
+    "test/helpers/tmp.mjs",
+    "test/completion.mjs",
+    "docs/guarantees.md",
+    "docs/leases-and-retries.md",
+    "docs/operations.md",
+    "docs/rfc-007-exactly-once-completion.md",
+    "docs/wal-format.md",
+    "docs/architecture.md"
+  ],
+  "outsidePathsTouched": [
+    "../failpoints.mjs"
+  ],
+  "disk": {
+    "inventoried": true,
+    "created": [
+      "test/helpers/crash.mjs",
+      "test/durability.mjs",
+      "test/completion.mjs"
+    ],
+    "modified": [
+      "package.json",
+      "docs/api.md",
+      "CHANGELOG.md",
+      "src/cli.mjs",
+      "src/snapshot.mjs",
+      "src/frame.mjs",
+      "src/queue.mjs",
+      "docs/compaction.md",
+      "src/compactor.mjs",
+      "src/store.mjs",
+      "src/wal.mjs",
+      "src/records.mjs",
+      "src/state.mjs",
+      "src/fsops.mjs",
+      "src/inspect.mjs",
+      "src/worker/pool.mjs",
+      "src/worker/runner.mjs",
+      "docs/guarantees.md",
+      "docs/leases-and-retries.md",
+      "docs/operations.md",
+      "docs/rfc-007-exactly-once-completion.md",
+      "docs/wal-format.md",
+      "docs/architecture.md"
+    ],
+    "deleted": [],
+    "filesBefore": 55,
+    "unchangedFiles": 32,
+    "unchangedAndReadOnDisk": 32,
+    "neverReadOnDisk": [],
+    "readOnDiskButNotThroughATool": [
+      "docs/crash-testing.md",
+      "src/clock.mjs",
+      "src/config.mjs",
+      "src/errors.mjs",
+      "src/failpoints.mjs",
+      "src/idempotency.mjs",
+      "src/lease.mjs",
+      "src/lock.mjs",
+      "src/logger.mjs",
+      "src/metrics.mjs",
+      "src/worker/child.mjs",
+      "src/worker/protocol.mjs",
+      "src/worker/registry.mjs",
+      "test/backoff-schedule.mjs",
+      "test/helpers/append-then-die.mjs",
+      "test/helpers/handlers.mjs"
+    ]
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "I fixed the root causes I found and implemented RFC 007. I couldn't run `npm run stress` or any real-process test here, so none of this has been checked with real kills.\n\nThis sandbox blocks spawning child processes (`spawn EPERM`), and `.git` is read-only. Six existing tests need to spawn processes and fail here for that reason: the 5 worker-pool tests and the kill-during-append test in `test/recovery.mjs`. Please run `npm run stress` several times, with different `--seed` values, on a real host before trusting this.\n\nI ran everything else in-process with `node --test --test-isolation=none test/*.mjs`, using the power-loss model and failpoint callbacks. 69 tests pass. Of my 20 new durability tests, 15 fail against the original source. The other 5 are guards for behaviour that already held, and the 13 RFC tests in `test/completion.mjs` have no old-source run to compare against.\n\n**Incident root causes**\n- **Won't open after power loss:** a torn tail was reported but never cut off, so later writes landed behind it. `wal.log` is now cut off at the torn tail when it is found. Damage with a valid frame after it still raises `CorruptLogError` with the offset and leaves the file untouched (G4). `src/frame.mjs`, `src/store.mjs`\n- **0-byte log after compaction:** the new log was renamed into place without being synced. It is now synced first. A new log's first creation is also synced. `src/compactor.mjs`, `src/wal.mjs`\n- **Jobs lost on a big log:** the 1 MiB scan chunk treated a record cut by the chunk edge as a torn tail, so the rest was silently dropped. Scans now read on until a frame fits. This is my best explanation for the large-queue loss, but I have no reproduction.\n- **Compaction EEXIST:** a leftover `wal.log.compact` blocked every later compaction, so I removed the exclusive create. Opening a queue also finishes an interrupted compaction.\n- **Compaction EPERM:** the rename now moves the old log aside to `wal.log.old.<generation>` when another process has it open. `walq tail` also no longer holds the log open. I couldn't test Windows's behaviour with a handle opened without share-delete.\n\n**Other guarantee breaks**\n- **Double runs:** heartbeats lived only in the worker's memory, so another process's reaper expired live jobs. They are now log records. Claim also re-picks the job under the lock.\n- **Stale idempotency key:** snapshots dropped keys. They are now stored with a TTL, and the lookup runs under the lock.\n- **Retry timing:** replay used the clock at replay time instead of the record's `at`. Snapshots dropped `priority`, `attempts` and `fence`, and `requeue` reset the fence.\n- **Compaction detection:** other processes now notice a compaction by its generation, not by file size. Automatic compaction no longer rewrites a large live state on every write.\n- **Large logs:** a state too big for one frame is split across `snapshot-more` records, and an oversized record is refused when written.\n\n**RFC 007**\n- `complete()` now returns a receipt. It is durable before it returns and is idempotent on a repeat with the same token.\n- I added `getResult`, `completions` and `reclaimWorker`, plus the `release` record.\n- The pool reclaims a dead worker's leases when it sees the worker exit.\n- The runner keeps trying to record a finished job.\n- Failpoint names and the public API are unchanged apart from RFC 007's additions. Docs, CHANGELOG and version (0.5.0) are updated.\n\n**Caveats**\n- **Compatibility:** old logs open without conversion. A log containing `release` or `snapshot-more` records can't be read by older code.\n- **Heartbeat cost:** heartbeats append unsynced records, so heartbeat traffic adds log growth.\n- **Cancelled jobs:** they are never pruned by retention (unchanged from before). That is probably a leak, but I left it.\n- **Original test failure:** the original \"bad checksum last record\" test failed before my changes and passes now.\n- **New test files:** `test/durability.mjs`, `test/completion.mjs` and `test/helpers/crash.mjs` are new. No existing test was weakened."
+}

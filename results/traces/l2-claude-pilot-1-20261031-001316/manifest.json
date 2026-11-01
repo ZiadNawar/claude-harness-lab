@@ -1,0 +1,71 @@
+﻿{
+    "run_id":  "l2-claude-pilot-1-20261031-001316",
+    "started":  "2026-10-30T23:13:17.9478980Z",
+    "executable":  "claude.exe",
+    "arguments":  [
+                      "-p",
+                      "--model",
+                      "claude-sonnet-5-5",
+                      "--output-format",
+                      "stream-json",
+                      "--verbose",
+                      "--strict-mcp-config",
+                      "--permission-mode",
+                      "acceptEdits",
+                      "--allowedTools",
+                      "\"Bash(node *)\"",
+                      "\"Bash(npm *)\"",
+                      "\"Bash(git *)\"",
+                      "\"Bash(ls *)\"",
+                      "\"Bash(cat *)\"",
+                      "\"Bash(mkdir *)\"",
+                      "\"PowerShell(node *)\"",
+                      "\"PowerShell(npm *)\"",
+                      "\"PowerShell(git *)\"",
+                      "\"PowerShell(Get-*)\"",
+                      "\"PowerShell(Select-*)\""
+                  ],
+    "locked":  {
+                   "model":  "claude-sonnet-5-5",
+                   "harness":  {
+                                   "claude":  {
+                                                  "version":  "2.1.310 (Claude Code)",
+                                                  "sha256":  "F9A3920634AE3B961EE92C2EB58D0051F5F8852B120983D0A4F57B6A5EFEBA61"
+                                              },
+                                   "codex":  {
+                                                 "version":  "codex-cli 0.162.0-alpha.17.2",
+                                                 "sha256":  "F5521B058CA08E249AFD3B25B4681E81100181D92E73AA6B94BB8E75C2AA487B"
+                                             },
+                                   "opencode":  {
+                                                    "version":  "opencode v2.1.1",
+                                                    "sha256":  "39B9DF25675050B1162E30D09326231BDE84BF6DB9C63605D1A68221BD091517"
+                                                },
+                                   "litellm":  {
+                                                   "version":  "1.106.1",
+                                                   "requirements":  "1FD14BC31FAA2B483967C9C41689A169B8EB99DD924FE851A5B145D751B859B3"
+                                               }
+                               },
+                   "lab":  {
+                               "scripts":  "80A9AF5EFC2C2E8C70ADCE5D1D4CB9219E7770D2286920F01D5C8FA4572CD01E",
+                               "litellm_config":  "9FA98A157CDAF0DFE948DBFA213500A934C774AA30D440DFD6C022DD609FBDFD",
+                               "pins":  "2CDBCD720671233BC0AA9FB0DDCFCF1F45263F76277D38F384A1632AA7E8C042"
+                           },
+                   "tasks":  {
+                                 "task-a":  {
+                                                "folder":  "6DFE67A2E78663B1E4763831C85C04FD844407FB18B1BDD1965DDBBB72F65BE0"
+                                            },
+                                 "level-2":  {
+                                                 "fixture":  "7871EE70F6CB6F2B927F292969BA8E1D7C052AC03887CA4B7B9BC20E35512E5A",
+                                                 "prompt":  "BF7556681D57D8AEEF91886373A36E08963BF4AEB97841D7460FD4A1F02C2273",
+                                                 "hidden":  "0F7E21F105668C28AB318F2E92FEB577E4DB31B18901121277FA0760052B538D",
+                                                 "grading":  "9D021DB697246CBB39FFEA4603CBA5BF7E87DAB44FB5F43251E2728E16306D49"
+                                             }
+                             },
+                   "host":  {
+                                "windows":  "10.0.26200.0",
+                                "node":  "v24.7.0",
+                                "git":  "git version 2.51.2.windows.1",
+                                "python":  "Python 3.14.0"
+                            }
+               }
+}

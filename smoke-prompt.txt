@@ -1,0 +1,2 @@
+Work only in the current workspace. Create one new file named result.txt containing exactly CLAUDE_HARNESS_OK and a final newline. Do not modify any other file. Then stop.
+

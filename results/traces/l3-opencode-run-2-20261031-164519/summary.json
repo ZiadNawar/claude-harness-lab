@@ -1,0 +1,272 @@
+{
+  "condition": "opencode",
+  "workspace": "C:\\invoice-work\\2a068fa9\\workspace",
+  "ending": {
+    "reason": "succeeded",
+    "isError": false
+  },
+  "steps": 109,
+  "toolCalls": 62,
+  "toolsUsed": {
+    "shell": 35,
+    "write": 15,
+    "edit": 12
+  },
+  "said": 9,
+  "reasoning": {
+    "blocks": 38,
+    "withVisibleText": 38
+  },
+  "requests": 55,
+  "peakContextTokens": 170199,
+  "outputCharsReturnedToModel": 148350,
+  "commands": 35,
+  "testRuns": [
+    {
+      "seq": 7,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 9,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 11,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 12,
+      "exit": 1,
+      "pass": 39,
+      "fail": 3
+    },
+    {
+      "seq": 55,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 56,
+      "exit": 0,
+      "pass": 42,
+      "fail": 0
+    },
+    {
+      "seq": 70,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 71,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 74,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 78,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 79,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 82,
+      "exit": 0,
+      "pass": 8,
+      "fail": 35
+    },
+    {
+      "seq": 84,
+      "exit": 0,
+      "pass": 23,
+      "fail": 0
+    },
+    {
+      "seq": 94,
+      "exit": 0,
+      "pass": 99,
+      "fail": 1
+    },
+    {
+      "seq": 96,
+      "exit": 0,
+      "pass": 16,
+      "fail": 0
+    }
+  ],
+  "blocked": [
+    {
+      "seq": 5,
+      "tool": "shell",
+      "by": "os-denied",
+      "message": "const NO_DIR_SYNC = new Set(['EPERM', 'EISDIR', 'EINVAL', 'EBADF', 'EACCES']);",
+      "command": "cd C:\\invoice-work\\2a068fa9\\workspace; foreach($f in 'crc32','frame','fsops','wal','lock','store','state','records','snapshot','retention','compactor','idempotency','lease','backoff','failpoints','config','errors','clock'){ \"=== src/$f.mjs\"; Get-Content -Raw src\\$f.mjs }"
+    },
+    {
+      "seq": 9,
+      "tool": "shell",
+      "by": "os-denied",
+      "message": "rename failed EPERM",
+      "command": "cd C:\\invoice-work\\2a068fa9\\workspace; npm test 2>&1 | Select-String -Pattern '^(✔|✖|ℹ (pass|fail))' ; $d=\"C:\\invoice-home\\2a068fa9\\Temp\\opencode\\exp\"; mkdir $d -Force | Out-Null; Set-Content $d\\a.log x; Set-Content $d\\b.tmp y; node -e \"const fs=require('fs');const d=process.argv[1];const fd=fs.openSync(d+'/a.log','r');try{fs.renameSync(d+'/b.tmp',d+'/a.log');console.log('rename ok with open reader')}catch(e){console.log('rename failed',e.code)}\" $d"
+    }
+  ],
+  "filesReadThroughATool": [],
+  "filesEditedThroughATool": [
+    "src/frame.mjs",
+    "src/wal.mjs",
+    "src/state.mjs",
+    "src/snapshot.mjs",
+    "src/idempotency.mjs",
+    "src/compactor.mjs",
+    "src/store.mjs",
+    "src/queue.mjs",
+    "src/cli.mjs",
+    "src/inspect.mjs",
+    "src/worker/runner.mjs",
+    "src/worker/pool.mjs",
+    "test/helpers/crash-child.mjs",
+    "test/crash-recovery.mjs",
+    "test/consistency.mjs",
+    "test/rfc-007.mjs"
+  ],
+  "filesNamedInShellCommands": [
+    ".",
+    "package.json",
+    "CHANGELOG.md",
+    "README.md",
+    "scripts/stress-handlers.mjs",
+    "scripts/stress.mjs",
+    "C:/invoice-home/2a068fa9/Temp/opencode/exp",
+    "src/frame.mjs",
+    "src/records.mjs",
+    "src/retention.mjs",
+    "C:/invoice-home/2a068fa9/Temp/opencode/mid.txt",
+    "src/queue.mjs",
+    "src/cli.mjs",
+    "src/inspect.mjs",
+    "src/worker/pool.mjs",
+    "C:/invoice-home/2a068fa9/Temp/opencode/stress1.txt",
+    "test/crash-recovery.mjs",
+    "test/consistency.mjs",
+    "C:/invoice-home/2a068fa9/Temp/opencode/t.txt",
+    "C:/invoice-home/2a068fa9/Temp/opencode/old.txt",
+    "test/helpers/handlers.mjs",
+    "test/rfc-007.mjs",
+    "C:/invoice-home/2a068fa9/Temp/opencode/stress$s.txt",
+    "docs/api.md",
+    "docs/architecture.md",
+    "docs/compaction.md",
+    "docs/leases-and-retries.md",
+    "docs/operations.md",
+    "docs/rfc-007-exactly-once-completion.md",
+    "docs/wal-format.md",
+    "C:/invoice-home/2a068fa9/.local/share/opencode/shell/93bd26f72e7a32f329bb995ef48bd83ad2908574/sh_192aec239001BaxEb04sTRjpO1.out",
+    "C:/invoice-home/2a068fa9/Temp/opencode/stress*.txt"
+  ],
+  "outsidePathsTouched": [
+    "C:/invoice-home/2a068fa9/Temp/opencode/exp",
+    "C:/invoice-home/2a068fa9/Temp/opencode/mid.txt",
+    "C:/invoice-home/2a068fa9/Temp/opencode/stress1.txt",
+    "C:/invoice-home/2a068fa9/Temp/opencode/t.txt",
+    "C:/invoice-home/2a068fa9/Temp/opencode/old.txt",
+    "C:/invoice-home/2a068fa9/Temp/opencode/stress$s.txt",
+    "C:/invoice-home/2a068fa9/.local/share/opencode/shell/93bd26f72e7a32f329bb995ef48bd83ad2908574/sh_192aec239001BaxEb04sTRjpO1.out",
+    "C:/invoice-home/2a068fa9/Temp/opencode/stress*.txt"
+  ],
+  "disk": {
+    "inventoried": true,
+    "created": [
+      "test/helpers/crash-child.mjs",
+      "test/crash-recovery.mjs",
+      "test/consistency.mjs",
+      "test/rfc-007.mjs"
+    ],
+    "modified": [
+      "package.json",
+      "CHANGELOG.md",
+      "README.md",
+      "src/frame.mjs",
+      "src/wal.mjs",
+      "src/records.mjs",
+      "src/retention.mjs",
+      "src/state.mjs",
+      "src/snapshot.mjs",
+      "src/compactor.mjs",
+      "src/store.mjs",
+      "src/queue.mjs",
+      "src/cli.mjs",
+      "src/inspect.mjs",
+      "src/worker/runner.mjs",
+      "src/worker/pool.mjs",
+      "docs/api.md",
+      "docs/architecture.md",
+      "docs/compaction.md",
+      "docs/leases-and-retries.md",
+      "docs/operations.md",
+      "docs/rfc-007-exactly-once-completion.md",
+      "docs/wal-format.md"
+    ],
+    "deleted": [],
+    "filesBefore": 55,
+    "unchangedFiles": 32,
+    "unchangedAndReadOnDisk": 32,
+    "neverReadOnDisk": [],
+    "readOnDiskButNotThroughATool": [
+      "src/idempotency.mjs",
+      ".gitignore",
+      "docs/crash-testing.md",
+      "docs/guarantees.md",
+      "src/backoff.mjs",
+      "src/clock.mjs",
+      "src/config.mjs",
+      "src/crc32.mjs",
+      "src/errors.mjs",
+      "src/failpoints.mjs",
+      "src/fsops.mjs",
+      "src/index.mjs",
+      "src/lease.mjs",
+      "src/lock.mjs",
+      "src/logger.mjs",
+      "src/metrics.mjs",
+      "src/worker/child.mjs",
+      "src/worker/protocol.mjs",
+      "src/worker/registry.mjs",
+      "test/backoff-schedule.mjs",
+      "test/compaction.mjs",
+      "test/failpoints.mjs",
+      "test/frame-format.mjs",
+      "test/helpers/append-then-die.mjs",
+      "test/helpers/tmp.mjs",
+      "test/leases.mjs",
+      "test/queue-basics.mjs",
+      "test/recovery.mjs",
+      "test/worker-pool.mjs"
+    ]
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "I've fixed the root causes below and implemented RFC 007. `npm test` passes (100 tests), and `npm run stress` was clean on seeds 1–4 (about 48–51 rounds each, 0 problems). Stress was already clean on the original code for seed 1, so those runs don't show the fixes work. My new tests do: 35 of the 43 tests in `test/consistency.mjs` and `test/crash-recovery.mjs` fail on the original `src`.\n\n## What was wrong and what I changed\n\n**Reopening after a crash (the Tuesday incident, G2–G4)**\n- A torn tail that was zero-filled or had a bad checksum raised `CorruptLogError`. Only a short tail was tolerated.\n- Valid frames written after a torn tail would then make the log unreadable later, which is probably why trimming by hand lost jobs.\n- Bad bytes now count as a torn tail only if no valid frame follows them. The lock holder removes the tail before writing anything else.\n- If a valid frame follows, it is `CorruptLogError` with the offset, and the file is left untouched.\n- `complete()` wasn't synced, so an acknowledged commit could vanish on power loss. It is now synced.\n- A new log, and a compacted log, were renamed into place before being synced. That is the source of the 0-byte `wal.log` after a power cut. Both are now synced first.\n\n**Largest queue lost jobs (no reproduction, so this is my diagnosis)**\n- Catch-up read only the first 1 MiB of the log. A restart saw part of the state, and the next compaction wrote that part as the whole queue.\n- Catch-up now reads to the end. Records larger than a chunk work, and a record over 64 MiB is refused before it can make the log unreadable.\n\n**Jobs ran twice**\n- Heartbeats were kept only in the worker's memory, so the pool's reaper expired live jobs. They are now logged.\n- `claim`, `reap` and idempotency-key checks decided before taking the lock, so two processes could claim one job, issue the same token, or create two jobs for one key. Everything is now decided under the lock.\n- Tokens weren't checked, only the job's status. They are checked now.\n- `requeueDead` reset the token counter. It no longer does.\n- Stale `expire` or `complete` records could bring a finished job back to life. The replay logic now ignores any record that isn't about the job's current attempt.\n\n**Odd retries and the key that fired again after compaction**\n- Retry due time was computed from the clock at replay time. It is now the record's time plus the delay.\n- Snapshots dropped `attempts`, `fence` and `priority`. That is why the failing job never reached its limit of 5, and why tokens could repeat.\n- Snapshots also dropped idempotency keys for pruned jobs, which is why the report was sent again. Keys are now kept for their full time to live.\n\n**Compaction**\n- A leftover `wal.log.compact` caused EEXIST forever. The stale file is now removed before writing, and removed again on failure.\n- EPERM is Windows refusing to replace a file another program has open. I confirmed it on this box.\n  - `walq tail` held the log open between polls. It now opens the file only for each poll and follows compactions.\n  - A backup agent holding the file still blocks compaction. It now fails cleanly and is retried later with growing spacing, and `lastCompactionError` shows why.\n- Other processes noticed a compaction only if the new log was shorter. They now check the header's generation.\n- A live state bigger than `compactAfterBytes` was rewritten on every write. Compaction now also waits for the log to double.\n\n**RFC 007**\n- `complete()` returns receipts, with `committed` or `already-committed`.\n- `getResult`, `completions` and `reclaimWorker` are added, along with the `release` record.\n- The pool reclaims a dead worker's leases the moment it exits, and retries if the queue is busy.\n- Worker ids are now unique per pool. Before, `w1` in two pools sharing a directory would have reclaimed each other's jobs.\n- A worker keeps retrying the commit of a finished job until it is recorded or the worker is fenced, and keeps heartbeating meanwhile.\n- Cancelled jobs are now pruned after `retainCompletedMs` like other finished jobs. Previously they stayed in the log forever.\n- Docs, changelog and README are updated, and the version is 0.5.0.\n\n## Testing\n- New test files:\n  - `test/consistency.mjs` covers races between two queue instances in one process, using the failpoints, plus retries, keys and compaction.\n  - `test/crash-recovery.mjs` covers torn tails, corruption, large logs, and kills under `WALQ_SIMULATE_POWER_LOSS` at each compaction, create and `complete` failpoint.\n  - `test/rfc-007.mjs` covers receipts, results, reclaim, runner retry and the pool.\n- No existing tests were changed. The three that failed at the start now pass.\n\n## What I couldn't finish or am unsure about\n- **The big-queue restart loss** is a diagnosis from the code (the 1 MiB catch-up limit), not a reproduction. My large-log test covers that mechanism.\n- **A damaged final record** with nothing after it looks the same as a torn write, so it is dropped silently. Telling them apart would need a format change. An unsynced torn write followed by valid later frames is reported as corruption, not recovered.\n- **Existing damaged logs:**\n  - A 0-byte `wal.log` from the earlier compaction bug is still refused with `CorruptLogError`. The data in it is already gone, and I chose not to hide that.\n  - The log that was hand-trimmed on Tuesday has lost whatever was cut, and that can't be recovered.\n- **Backup tools** that hold `wal.log` open will still delay compaction on Windows. It is safe and retried, but not eliminated.\n- **Large snapshots:** a live state over 64 MiB can't compact, because a snapshot is one record. Fixing that needs a new record type.\n- **Heartbeats aren't fsynced.** After a power loss the lease simply expires, which is the intended outcome. If you want them synced, it's a one-word change.\n- **Old logs:** records in old logs that aren't about the job's current attempt are now ignored on replay, so a pre-upgrade log could replay slightly differently from what its writers saw. Those records came from the races above.\n- **Not covered:** a failed `fsync` on a real disk, and macOS (only Windows was run)."
+}

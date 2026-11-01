@@ -1,0 +1,47 @@
+{
+  "fixture": {
+    "enqueue": "accepted",
+    "logGrewBytes": 68157586,
+    "nextEnqueue": "ok",
+    "reopened": "refused: CorruptLogError: corrupt record at offset 172 (bad-length)"
+  },
+  "reference": {
+    "enqueue": "accepted",
+    "logGrewBytes": 68157586,
+    "nextEnqueue": "ok",
+    "reopened": "refused: CorruptLogError: corrupt record at offset 172 (bad-length), committed records follow it"
+  },
+  "alternative": {
+    "enqueue": "accepted",
+    "logGrewBytes": 68157586,
+    "nextEnqueue": "ok",
+    "reopened": "refused: CorruptLogError: bad record at offset 172 (bad-length), but a good one at 68157758"
+  },
+  "claude": {
+    "enqueue": "WalqError: record of 68157576 bytes exceeds the 67108864 byte limit",
+    "logGrewBytes": 0,
+    "nextEnqueue": "ok",
+    "reopened": [
+      "before",
+      "after"
+    ]
+  },
+  "opencode": {
+    "enqueue": "WalqError: record of 68157576 bytes exceeds the 67108864 byte limit of the log format",
+    "logGrewBytes": 0,
+    "nextEnqueue": "ok",
+    "reopened": [
+      "before",
+      "after"
+    ]
+  },
+  "codex": {
+    "enqueue": "WalqError: record of 68157576 bytes exceeds the 67108864 byte limit",
+    "logGrewBytes": 0,
+    "nextEnqueue": "ok",
+    "reopened": [
+      "before",
+      "after"
+    ]
+  }
+}

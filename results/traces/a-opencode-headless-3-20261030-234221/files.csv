@@ -1,0 +1,8 @@
+path,disk,sizeBefore,sizeAfter,read,readDetail,edit,write,create,delete,search,list,inferred,inferredActions,diskRead,diskFirstReadSeconds,firstStep,lastStep,outside
+".","","","","0","","0","0","0","0","2","1","0","","","","2","14","false"
+"package.json","","","","1","","0","0","0","0","0","0","1","git-read","","","4","18","false"
+"README.md","","","","1","","0","0","0","0","0","0","0","","","","5","5","false"
+"src/invoice.mjs","","","","1","","1","0","0","0","0","0","0","","","","7","16","false"
+"test/invoice-total.mjs","","","","1","","0","0","0","0","0","0","0","","","","8","8","false"
+"docs/rounding.md","","","","1","","1","0","0","0","0","0","0","","","","9","17","false"
+".gitignore","","","","0","","0","0","0","0","0","0","1","read","","","15","15","false"

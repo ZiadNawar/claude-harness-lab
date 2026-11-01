@@ -1,0 +1,48 @@
+{
+  "fixture": {
+    "settleCreditNote(1000, { openBalance: 200 })": {
+      "againstBalance": 200,
+      "refunded": 800,
+      "toAccount": 0
+    },
+    "parseAmount('29.00', 'JPY')": 2900,
+    "parseAmount('29', 'JPY')": 2900,
+    "parseAmount('1.500', 'KWD')": "throws: 1.500 has more decimals than KWD allows"
+  },
+  "reference": {
+    "settleCreditNote(1000, { openBalance: 200 })": "throws: Cannot read properties of undefined (reading 'filter')",
+    "parseAmount('29.00', 'JPY')": "throws: 29.00 has more decimals than JPY allows",
+    "parseAmount('29', 'JPY')": 29,
+    "parseAmount('1.500', 'KWD')": 1500
+  },
+  "claude": {
+    "settleCreditNote(1000, { openBalance: 200 })": {
+      "againstBalance": 200,
+      "refunded": 800,
+      "toAccount": 0
+    },
+    "parseAmount('29.00', 'JPY')": "throws: 29.00 has more decimals than JPY allows",
+    "parseAmount('29', 'JPY')": 29,
+    "parseAmount('1.500', 'KWD')": 1500
+  },
+  "opencode": {
+    "settleCreditNote(1000, { openBalance: 200 })": {
+      "againstBalance": 200,
+      "refunded": 800,
+      "toAccount": 0
+    },
+    "parseAmount('29.00', 'JPY')": "throws: 29.00 has more decimals than JPY allows",
+    "parseAmount('29', 'JPY')": 29,
+    "parseAmount('1.500', 'KWD')": 1500
+  },
+  "codex": {
+    "settleCreditNote(1000, { openBalance: 200 })": {
+      "againstBalance": 200,
+      "refunded": 0,
+      "toAccount": 800
+    },
+    "parseAmount('29.00', 'JPY')": "throws: 29.00 has more decimals than JPY allows",
+    "parseAmount('29', 'JPY')": 29,
+    "parseAmount('1.500', 'KWD')": 1500
+  }
+}

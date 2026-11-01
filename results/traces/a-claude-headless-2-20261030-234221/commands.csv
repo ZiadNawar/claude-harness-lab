@@ -1,0 +1,6 @@
+seq,at,finishedAt,tool,command,exit,testPass,testFail,blockedBy,blockedMessage,outputChars
+"1","2026-10-30T22:45:45.226Z","2026-10-30T22:45:46.731Z","Bash","git ls-files && cat package.json pyproject.toml requirements.txt 2>/dev/null","1","","","","","238"
+"2","2026-10-30T22:45:47.914Z","2026-10-30T22:45:47.939Z","Bash","cat src/invoice.mjs test/invoice-total.mjs docs/rounding.md README.md; npm test 2>&1 | head -50","","","","harness-permission","This Bash command contains multiple operations. The following part requires approval: cat src/invoice.mjs test/invoice-total.mjs docs/rounding.md README.md; npm test 2>&1","170"
+"6","2026-10-30T22:45:49.887Z","2026-10-30T22:45:50.605Z","PowerShell","npm test","","","","harness-permission","This PowerShell command contains multiple operations. The following part requires approval: npm test","100"
+"8","2026-10-30T22:45:52.525Z","2026-10-30T22:45:52.536Z","PowerShell","npm test","","","","harness-permission","This PowerShell command contains multiple operations. The following part requires approval: npm test","100"
+"9","2026-10-30T22:45:53.893Z","2026-10-30T22:45:54.571Z","PowerShell","npm install decimal.js","","","","harness-permission","This PowerShell command contains multiple operations. The following part requires approval: npm install decimal.js","114"

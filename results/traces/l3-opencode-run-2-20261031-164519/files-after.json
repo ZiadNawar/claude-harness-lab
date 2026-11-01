@@ -1,0 +1,418 @@
+{
+ "taken": "2026-10-31T16:03:54.787Z",
+ "files": [
+  {
+   "path": ".gitignore",
+   "size": 39,
+   "mtimeMs": 1793428627560.029,
+   "atimeMs": 1793462631581.1848,
+   "sha256": "c42c0612e163b6537e64ea2c2a01a339cc0097d4ce8617869692e3b8a6785596"
+  },
+  {
+   "path": "CHANGELOG.md",
+   "size": 1867,
+   "mtimeMs": 1793462322336.296,
+   "atimeMs": 1793462328698.51,
+   "sha256": "81ef5b911a72c0218bc199234abb197be84f43ce76451aaf785f64c4ff8bb244"
+  },
+  {
+   "path": "README.md",
+   "size": 3253,
+   "mtimeMs": 1793462322326.848,
+   "atimeMs": 1793462328698.51,
+   "sha256": "cd19b8ae25da04c92ab3af67b858441063eed9f82e2fc09f5e9b9d059b82b223"
+  },
+  {
+   "path": "docs/api.md",
+   "size": 5606,
+   "mtimeMs": 1793462322171.218,
+   "atimeMs": 1793462328699.509,
+   "sha256": "5a451278e841f563c1691d71750a2809a194d66e4e25724b9f3e4524689d19da"
+  },
+  {
+   "path": "docs/architecture.md",
+   "size": 2998,
+   "mtimeMs": 1793462322322.8215,
+   "atimeMs": 1793462328699.509,
+   "sha256": "9161a7c4b9236ef310d2f70c054342d98568c2cdeb206529c9288dcf9a318f1d"
+  },
+  {
+   "path": "docs/compaction.md",
+   "size": 2005,
+   "mtimeMs": 1793462322244.7383,
+   "atimeMs": 1793462328699.509,
+   "sha256": "ae87818b92b83528eba424af9d3aad9f86cd22e9f450e85b6120605e3b677088"
+  },
+  {
+   "path": "docs/crash-testing.md",
+   "size": 3469,
+   "mtimeMs": 1793428627580.3098,
+   "atimeMs": 1793461536822.1465,
+   "sha256": "e54b5ba6e9c385eaa5d1c5e984bfc63e6b7d524eedaa334ab27a66653565c90a"
+  },
+  {
+   "path": "docs/guarantees.md",
+   "size": 3019,
+   "mtimeMs": 1793428627581.3938,
+   "atimeMs": 1793461536827.294,
+   "sha256": "f54faac8ab8b7ad365ea4fb049698344814b9d35a78c0812ca2ac8e0fc95f74d"
+  },
+  {
+   "path": "docs/leases-and-retries.md",
+   "size": 1848,
+   "mtimeMs": 1793462322281.1758,
+   "atimeMs": 1793462328699.509,
+   "sha256": "4537071f281e85bf85cf24d4008ca17729a03a05cdea0cb784440690dc1b7ccc"
+  },
+  {
+   "path": "docs/operations.md",
+   "size": 2421,
+   "mtimeMs": 1793462322308.5503,
+   "atimeMs": 1793462328699.509,
+   "sha256": "705edfe653333b1d3d995ba6689ed456c2560776308e34caa5f19d3adadb809e"
+  },
+  {
+   "path": "docs/rfc-007-exactly-once-completion.md",
+   "size": 4085,
+   "mtimeMs": 1793462322172.7312,
+   "atimeMs": 1793462328699.509,
+   "sha256": "794a42503f23cacbb222fba283b6f566fc8cea0bc738d1930ba39a0a94a56de2"
+  },
+  {
+   "path": "docs/wal-format.md",
+   "size": 3499,
+   "mtimeMs": 1793462322198.6575,
+   "atimeMs": 1793462328699.509,
+   "sha256": "d03e30fc8b994f79b4e0b9d1633bd61346a04eecf0e30be72dcd1cb2dbfe7546"
+  },
+  {
+   "path": "package.json",
+   "size": 346,
+   "mtimeMs": 1793462328139.6328,
+   "atimeMs": 1793462633904.5847,
+   "sha256": "312e3b38f9c484aeb6a56ea7c56e89f63c2cb61cdf68fada8dc8586acb234eff"
+  },
+  {
+   "path": "scripts/stress-handlers.mjs",
+   "size": 953,
+   "mtimeMs": 1793428627586.407,
+   "atimeMs": 1793462560362.0288,
+   "sha256": "76ba20733f0dedf01175f0abbe7e2a0ae97922f3a10aed15195419db762bfde9"
+  },
+  {
+   "path": "scripts/stress.mjs",
+   "size": 10664,
+   "mtimeMs": 1793428627587.4043,
+   "atimeMs": 1793462471172.4849,
+   "sha256": "b81cb4e9575c669ea795aea1d9c0706b40f4e3dcd83213d1f225c1d6d4c47472"
+  },
+  {
+   "path": "src/backoff.mjs",
+   "size": 839,
+   "mtimeMs": 1793428627588.4048,
+   "atimeMs": 1793462560346.4927,
+   "sha256": "fc1c0f5894e21c7b145170eed8b38c85d6ebd80db4e1e5a4ade1d09f8ed05ea4"
+  },
+  {
+   "path": "src/cli.mjs",
+   "size": 3806,
+   "mtimeMs": 1793462173885.4126,
+   "atimeMs": 1793462328212.129,
+   "sha256": "3f02081173066998c57e8bf5d251e2f660ae82303a2a880882a6e60267af3a4e"
+  },
+  {
+   "path": "src/clock.mjs",
+   "size": 785,
+   "mtimeMs": 1793428627589.4043,
+   "atimeMs": 1793462560350.4993,
+   "sha256": "fb4174fed419f70a979c866e63c620f9a32cf267453c14215d58c39c3ab2bde3"
+  },
+  {
+   "path": "src/compactor.mjs",
+   "size": 1925,
+   "mtimeMs": 1793462173886.367,
+   "atimeMs": 1793462560354.5068,
+   "sha256": "05a0561282b89ee0cb1b61c2e82dcc33ecd3b624f67da5de89afc14d30ed01e5"
+  },
+  {
+   "path": "src/config.mjs",
+   "size": 1461,
+   "mtimeMs": 1793428627591.5085,
+   "atimeMs": 1793462560347.495,
+   "sha256": "a61cff93531303bc4f0b97df817fa350298547fa66a5e379468c7376db2e19c3"
+  },
+  {
+   "path": "src/crc32.mjs",
+   "size": 483,
+   "mtimeMs": 1793428627592.515,
+   "atimeMs": 1793462560359.9954,
+   "sha256": "aece58bcd5ce976da090aecef5775115e7e2b1a843a7e11f33bc424017cb8708"
+  },
+  {
+   "path": "src/errors.mjs",
+   "size": 1285,
+   "mtimeMs": 1793428627593.509,
+   "atimeMs": 1793462560347.495,
+   "sha256": "ce52aedd9c1fa661e62fe130f084c20309fabc52a9f1e0f091278d60fb6367ca"
+  },
+  {
+   "path": "src/failpoints.mjs",
+   "size": 2900,
+   "mtimeMs": 1793428627593.509,
+   "atimeMs": 1793462560347.495,
+   "sha256": "6cf3d087311e1186fbe91aa4bc6d9f0a8d8f647f45cdfb57a72216e999d3cc6c"
+  },
+  {
+   "path": "src/frame.mjs",
+   "size": 4875,
+   "mtimeMs": 1793462173886.367,
+   "atimeMs": 1793462560355.5056,
+   "sha256": "554e477625bce84c2c4d27be20888d3bea886dca003756da7177997ac5a658c2"
+  },
+  {
+   "path": "src/fsops.mjs",
+   "size": 4331,
+   "mtimeMs": 1793428627595.514,
+   "atimeMs": 1793462560355.5056,
+   "sha256": "7fed49b53c4cd09857545c6b7375b08e4143ba819f952a1a8d18140e7ad5f241"
+  },
+  {
+   "path": "src/idempotency.mjs",
+   "size": 529,
+   "mtimeMs": 1793461874082.6917,
+   "atimeMs": 1793462560348.4963,
+   "sha256": "377dfa8bc93e32c95f2f67b61973f6f42714d75aa422342fa74e48dda39984e4"
+  },
+  {
+   "path": "src/index.mjs",
+   "size": 562,
+   "mtimeMs": 1793428627597.556,
+   "atimeMs": 1793462471177.4878,
+   "sha256": "45ed3ff3f57edddbe5cdf3acc0eb4875e0272e0626f8cd6c56bb0b429baa2c92"
+  },
+  {
+   "path": "src/inspect.mjs",
+   "size": 1694,
+   "mtimeMs": 1793462173887.874,
+   "atimeMs": 1793462471183.7424,
+   "sha256": "a476f102e1e2de051db0a898f16d019afaffe69e40da62603a2d6cf9abbee477"
+  },
+  {
+   "path": "src/lease.mjs",
+   "size": 1017,
+   "mtimeMs": 1793428627598.5078,
+   "atimeMs": 1793462560348.4963,
+   "sha256": "1e6cdd66e8c385f7be9ef19e37701778869adb4b76206e09fe65fc2f5108ee4d"
+  },
+  {
+   "path": "src/lock.mjs",
+   "size": 1305,
+   "mtimeMs": 1793428627598.5078,
+   "atimeMs": 1793462560356.633,
+   "sha256": "27f48b4397e0fa64ed782c58a207059b313e7c7bf20f0f18ecf4c417f10bc5ce"
+  },
+  {
+   "path": "src/logger.mjs",
+   "size": 897,
+   "mtimeMs": 1793428627599.5083,
+   "atimeMs": 1793462560356.633,
+   "sha256": "eb82c9f7718d5a3fceec408e65af30d9eafe7b8a9da6e5bd49444479626e9994"
+  },
+  {
+   "path": "src/metrics.mjs",
+   "size": 1269,
+   "mtimeMs": 1793428627599.5083,
+   "atimeMs": 1793462560348.4963,
+   "sha256": "5189f6a08aff02a0af4722d0654e117525afc1b67cd8f7d40ad7c45e3b6cd557"
+  },
+  {
+   "path": "src/queue.mjs",
+   "size": 13542,
+   "mtimeMs": 1793462173888.882,
+   "atimeMs": 1793462560342.494,
+   "sha256": "443cedd9b2415dc77a07635bda362f87dbb04500cfbbcd5b17e932045b6b319f"
+  },
+  {
+   "path": "src/records.mjs",
+   "size": 1353,
+   "mtimeMs": 1793462173889.8818,
+   "atimeMs": 1793462560349.4988,
+   "sha256": "a01cf5b8251843a344c7e1f8bf02e8f5eb565b78a6ec9690780aba2c68524cd0"
+  },
+  {
+   "path": "src/retention.mjs",
+   "size": 338,
+   "mtimeMs": 1793462173890.8867,
+   "atimeMs": 1793462560361.0264,
+   "sha256": "4de71ccd428862b461b3b630400a5e1f80e932adec3adc1e283d37e29d0fc31a"
+  },
+  {
+   "path": "src/snapshot.mjs",
+   "size": 2506,
+   "mtimeMs": 1793462173891.881,
+   "atimeMs": 1793462560359.9954,
+   "sha256": "2538e14cb5e3bc4a8aabdec080f02696c3f41b4a14acade9efeb8928dc47ba52"
+  },
+  {
+   "path": "src/state.mjs",
+   "size": 3383,
+   "mtimeMs": 1793462173892.8809,
+   "atimeMs": 1793462560357.6301,
+   "sha256": "6300c63a47f8d81eee562194ba312fd04d207a0029ab3b9730b66c525e2d903e"
+  },
+  {
+   "path": "src/store.mjs",
+   "size": 5812,
+   "mtimeMs": 1793462173893.881,
+   "atimeMs": 1793462560350.4993,
+   "sha256": "39a247038539e5c8367bfc8f1cd87682c17fd20dafdea9710d69fd0964f03fee"
+  },
+  {
+   "path": "src/wal.mjs",
+   "size": 3096,
+   "mtimeMs": 1793462173894.8823,
+   "atimeMs": 1793462560358.6694,
+   "sha256": "351d90edfaf0929addc22ffbe8a50580e917deb87a02d48a583d9888cf907598"
+  },
+  {
+   "path": "src/worker/child.mjs",
+   "size": 1031,
+   "mtimeMs": 1793428627610.9658,
+   "atimeMs": 1793462560340.4927,
+   "sha256": "d16efea481a40b5ad7d4e9a8120c2afb64a59ce6b3957d1f5cc191c3e9c96ef7"
+  },
+  {
+   "path": "src/worker/pool.mjs",
+   "size": 4555,
+   "mtimeMs": 1793462173895.9202,
+   "atimeMs": 1793462471180.8777,
+   "sha256": "fa2d3b2680f95f24a74856076ce33729827bc060c904d2c0bfa3c1f7849829c2"
+  },
+  {
+   "path": "src/worker/protocol.mjs",
+   "size": 633,
+   "mtimeMs": 1793428627612.9644,
+   "atimeMs": 1793462560343.4958,
+   "sha256": "8617a9c07f9b1bf4e1a5b86147b8ae3486a958471754456fb4c007c55d5b19f9"
+  },
+  {
+   "path": "src/worker/registry.mjs",
+   "size": 1601,
+   "mtimeMs": 1793428627613.9644,
+   "atimeMs": 1793462560343.4958,
+   "sha256": "bb79991b2d843c6d79e71477ade3d4c245e52ae4b0d2572ab9b1e2393a00a482"
+  },
+  {
+   "path": "src/worker/runner.mjs",
+   "size": 4229,
+   "mtimeMs": 1793462173895.9202,
+   "atimeMs": 1793462560344.4934,
+   "sha256": "16471c125bfc6582b0848851a8993b6ca76366ba5e9d2910f8be207da652eaa2"
+  },
+  {
+   "path": "test/backoff-schedule.mjs",
+   "size": 943,
+   "mtimeMs": 1793428627615.9705,
+   "atimeMs": 1793462271237.1433,
+   "sha256": "3e8a99c303a6959b8d66619d2e0b19eb95864f35fbd567debf3c85761670f46b"
+  },
+  {
+   "path": "test/compaction.mjs",
+   "size": 3180,
+   "mtimeMs": 1793428627616.9707,
+   "atimeMs": 1793462271254.866,
+   "sha256": "2e1c6fb39d1683656418d90be651e4c762b78451268c82ddef9c84b48c8488c3"
+  },
+  {
+   "path": "test/consistency.mjs",
+   "size": 13620,
+   "mtimeMs": 1793462194236.8196,
+   "atimeMs": 1793462271282.2493,
+   "sha256": "253cae2ad833aae4c160c89a4ad913e6e67192cd2a1e33faf854be36add34fbf"
+  },
+  {
+   "path": "test/crash-recovery.mjs",
+   "size": 8483,
+   "mtimeMs": 1793462148728.6575,
+   "atimeMs": 1793462271297.4526,
+   "sha256": "b7772eeb3bfc22acd5285b791a6abe48fb7e665f84a80c1aa74d94b2b05a5b51"
+  },
+  {
+   "path": "test/failpoints.mjs",
+   "size": 1192,
+   "mtimeMs": 1793428627616.9707,
+   "atimeMs": 1793462271320.5254,
+   "sha256": "4f84c2d5610ddaab2bd8d29146e8e2eb6faa0ed9e3664785bcfe83a502612b4c"
+  },
+  {
+   "path": "test/frame-format.mjs",
+   "size": 2008,
+   "mtimeMs": 1793428627617.9707,
+   "atimeMs": 1793462271356.4243,
+   "sha256": "18a9e1d9269cf724e38dda5337c958b3ccc94c535ef8de1a3b1e8040d9bd67f2"
+  },
+  {
+   "path": "test/helpers/append-then-die.mjs",
+   "size": 290,
+   "mtimeMs": 1793428627618.9705,
+   "atimeMs": 1793462271844.5837,
+   "sha256": "373509d9692fa8ded7d4b0b7633386fa9fa8eb61039e97a79740751c7ec3d652"
+  },
+  {
+   "path": "test/helpers/crash-child.mjs",
+   "size": 900,
+   "mtimeMs": 1793462071616.7708,
+   "atimeMs": 1793462275416.6401,
+   "sha256": "6d69028facc490ed391512af4cf7f6735f2687e4fbd535697524e261938722e2"
+  },
+  {
+   "path": "test/helpers/handlers.mjs",
+   "size": 940,
+   "mtimeMs": 1793428627618.9705,
+   "atimeMs": 1793462283776.184,
+   "sha256": "35db789fc212bdabb4d463813a1f499031c6bb8c14c52130528c86f97d8509b0"
+  },
+  {
+   "path": "test/helpers/tmp.mjs",
+   "size": 1419,
+   "mtimeMs": 1793428627619.9705,
+   "atimeMs": 1793462281370.0852,
+   "sha256": "df8020fda0a8ae8b2e465b3c65cb940d70b349528ac03fbb96d02b43705a90f7"
+  },
+  {
+   "path": "test/leases.mjs",
+   "size": 2074,
+   "mtimeMs": 1793428627619.9705,
+   "atimeMs": 1793462271379.6023,
+   "sha256": "acbc987528a7bd1d989accccc5daa13c59e324c6d81c1d97b1637d9a33783098"
+  },
+  {
+   "path": "test/queue-basics.mjs",
+   "size": 5038,
+   "mtimeMs": 1793428627620.9702,
+   "atimeMs": 1793462271420.4678,
+   "sha256": "80ee4e8d5f0301283f7628d46a19c1a1fc46d22ec008d23a2c3ee29ad759920e"
+  },
+  {
+   "path": "test/recovery.mjs",
+   "size": 2350,
+   "mtimeMs": 1793428627621.9705,
+   "atimeMs": 1793462271439.3523,
+   "sha256": "4f335b465caf66fd1d84c31ccd05f329bf777822e12473e3757bc6cc5afc2577"
+  },
+  {
+   "path": "test/rfc-007.mjs",
+   "size": 12866,
+   "mtimeMs": 1793462281154.931,
+   "atimeMs": 1793462285102.4614,
+   "sha256": "3e21b768c56cbb28a5e643fca001d6484f90e2a439fbff2ef83afa90f5473c4f"
+  },
+  {
+   "path": "test/worker-pool.mjs",
+   "size": 3459,
+   "mtimeMs": 1793428627621.9705,
+   "atimeMs": 1793462271471.036,
+   "sha256": "aae1e4833dc550bb575ca2566e590b13950459329deb17f560c8d6436d5bcac5"
+  }
+ ]
+}

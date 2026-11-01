@@ -1,0 +1,14 @@
+{
+  "name": "periodic-billing",
+  "version": "0.9.2",
+  "description": "A subscription billing library: renewal periods, proration, invoices, tax, credit notes, payments and account credit in integer minor units.",
+  "private": true,
+  "license": "MIT",
+  "exports": "./src/index.mjs",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.mjs\""
+  }
+}

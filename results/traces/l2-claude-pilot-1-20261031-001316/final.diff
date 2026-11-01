@@ -1,0 +1,499 @@
+﻿ M CHANGELOG.md
+ M docs/rounding.md
+ M src/allocation.mjs
+ M src/credit-note.mjs
+ M src/money.mjs
+ M src/proration.mjs
+ M src/schedule.mjs
+ M src/statement.mjs
+ M src/tax.mjs
+?? test/regression-cases.mjs
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 02dc760..0d85c1b 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,21 @@
+ # Changelog
+ 
++## Unreleased
++
++- Renewal dates are always worked out from the anchor, so a 31st anchor returns
++  to the 31st after a short month, and February in a leap year is no longer
++  treated as 28 days.
++- Proration counts the change date as time left on the new plan, as documented.
++- Amounts, plan prices and statements use each currency's own number of decimals
++  (JPY 0, KWD 3) instead of always two.
++- `allocate` follows the documented largest-remainder rule; a discount can no
++  longer push a free line negative or overload the last line.
++- Line tax within a rate group now adds up exactly to the group's tax, so line
++  gross amounts add up to the invoice total.
++- Credit notes are capped at each line's net (after discount), and take tax from
++  the tax charged on the line, so staged refunds end on a zero balance.
++- `docs/rounding.md` now describes the half-even default.
++
+ ## 0.6.2
+ 
+ - Statements show the discount as a negative amount.
+diff --git a/docs/rounding.md b/docs/rounding.md
+index 7a1b2bf..478cbd5 100644
+--- a/docs/rounding.md
++++ b/docs/rounding.md
+@@ -5,10 +5,12 @@ use exact integer arithmetic and then round once.
+ 
+ ## The default mode
+ 
+-The default rounding mode is half-up: an exact half always rounds away from zero.
+-So 2.5 rounds to 3, 3.5 rounds to 4 and -2.5 rounds to -3.
++The default rounding mode is half-even (banker's rounding): an exact half rounds to
++the neighbouring even number. So 2.5 rounds to 2, 3.5 rounds to 4 and -2.5 rounds
++to -2. Anything that is not an exact half rounds to the nearest whole unit.
+ 
+-This is the mode used for tax, discounts and proration.
++Finance asked for this in version 0.4.0 so that rounding does not lean upwards over
++many invoices. It is the mode used for tax, discounts and proration.
+ 
+ ## Other modes
+ 
+@@ -16,6 +18,7 @@ Callers can pass a mode explicitly:
+ 
+ | Mode | 2.5 | 3.5 | 2.4 | -2.5 |
+ |---|---|---|---|---|
++| `half-even` (default) | 2 | 4 | 2 | -2 |
+ | `half-up` | 3 | 4 | 2 | -3 |
+ | `down` | 2 | 3 | 2 | -2 |
+ 
+diff --git a/src/allocation.mjs b/src/allocation.mjs
+index 51f5263..9b16cf7 100644
+--- a/src/allocation.mjs
++++ b/src/allocation.mjs
+@@ -19,6 +19,10 @@ function assertWeights(weights) {
+ /**
+  * allocate(amount, weights) returns one integer per weight. The amount may be
+  * negative. At least one weight has to be positive.
++ *
++ * Each part starts at its exact share rounded towards zero. The units left over
++ * go one each to the lines that lost the most, earlier lines first on a tie. A
++ * negative amount mirrors the positive one.
+  */
+ export function allocate(amount, weights) {
+   assertMinorUnits(amount);
+@@ -28,7 +32,29 @@ export function allocate(amount, weights) {
+     throw new RangeError('allocate needs at least one positive weight');
+   }
+ 
+-  const parts = weights.map((weight) => Math.round((amount * weight) / totalWeight));
+-  parts[parts.length - 1] += amount - sumAmounts(parts);
+-  return parts;
++  const magnitude = BigInt(Math.abs(amount));
++  const total = BigInt(totalWeight);
++  const shares = weights.map((weight) => {
++    const product = magnitude * BigInt(weight);
++    return { whole: product / total, lost: product % total };
++  });
++  let leftover = magnitude - shares.reduce((sum, share) => sum + share.whole, 0n);
++
++  const order = shares
++    .map((share, position) => ({ share, position }))
++    .sort((a, b) => {
++      if (a.share.lost !== b.share.lost) return a.share.lost > b.share.lost ? -1 : 1;
++      return a.position - b.position;
++    });
++  for (const { share } of order) {
++    if (leftover === 0n) break;
++    share.whole += 1n;
++    leftover -= 1n;
++  }
++
++  const sign = amount < 0 ? -1 : 1;
++  return shares.map((share) => {
++    const part = sign * Number(share.whole);
++    return part === 0 ? 0 : part;
++  });
+ }
+diff --git a/src/credit-note.mjs b/src/credit-note.mjs
+index a6bc959..54f95f9 100644
+--- a/src/credit-note.mjs
++++ b/src/credit-note.mjs
+@@ -5,7 +5,7 @@
+ 
+ import { compareDates, parseIsoDate } from './dates.mjs';
+ import { assertMinorUnits, parseAmount, sumAmounts } from './money.mjs';
+-import { taxForAmount } from './tax.mjs';
++import { scaleRounded } from './rounding.mjs';
+ 
+ function assertNotesBelongTo(invoice, notes) {
+   for (const note of notes) {
+@@ -31,7 +31,7 @@ export function creditedToDate(invoice, notes = []) {
+ /** Per invoice line, the net amount that can still be credited. */
+ export function remainingCreditable(invoice, notes = []) {
+   const credited = creditedToDate(invoice, notes);
+-  return invoice.lines.map((line, index) => Math.max(line.amount - credited[index].net, 0));
++  return invoice.lines.map((line, index) => Math.max(line.net - credited[index].net, 0));
+ }
+ 
+ function requestedAmount(invoice, request, available) {
+@@ -60,6 +60,7 @@ export function issueCreditNote(invoice, request, priorNotes = []) {
+   }
+ 
+   const available = remainingCreditable(invoice, priorNotes);
++  const credited = creditedToDate(invoice, priorNotes);
+   const noteLines = lines.map((entry) => {
+     const line = invoice.lines[entry.lineIndex];
+     if (!line) throw new RangeError(`Invoice ${invoice.number} has no line ${entry.lineIndex}`);
+@@ -68,12 +69,19 @@ export function issueCreditNote(invoice, request, priorNotes = []) {
+     }
+ 
+     const amount = requestedAmount(invoice, entry, available[entry.lineIndex]);
+-    if (amount <= 0 || amount > line.amount) {
++    if (amount <= 0 || amount > available[entry.lineIndex]) {
+       throw new RangeError(`Cannot credit ${amount} on line ${entry.lineIndex} of ${invoice.number}`);
+     }
+ 
+-    const tax = taxForAmount(amount, line.taxRateBps);
+-    available[entry.lineIndex] = Math.max(available[entry.lineIndex] - amount, 0);
++    // Tax follows the tax actually charged on the line: the cumulative tax
++    // credited tracks the cumulative share of net credited, and reaches the
++    // line's tax exactly when the line is fully credited.
++    const done = credited[entry.lineIndex];
++    const netAfter = done.net + amount;
++    const tax = scaleRounded(line.tax, netAfter, line.net) - done.tax;
++    done.net = netAfter;
++    done.tax += tax;
++    available[entry.lineIndex] -= amount;
+     return {
+       lineIndex: entry.lineIndex,
+       description: line.description,
+diff --git a/src/money.mjs b/src/money.mjs
+index 44e257a..85eea5a 100644
+--- a/src/money.mjs
++++ b/src/money.mjs
+@@ -3,11 +3,9 @@
+  * and type, plus a few guarded integer helpers.
+  */
+ 
+-import { assertCurrency } from './currencies.mjs';
++import { minorUnitDigits } from './currencies.mjs';
+ 
+ const AMOUNT_PATTERN = /^(-)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?$/;
+-const MINOR_PER_MAJOR = 100;
+-const DECIMALS = 2;
+ 
+ function groupThousands(digits) {
+   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+@@ -25,30 +23,31 @@ export function assertMinorUnits(value, label = 'amount') {
+  * the currency has is an error, never a silent rounding.
+  */
+ export function parseAmount(text, currency) {
+-  assertCurrency(currency);
++  const decimals = minorUnitDigits(currency);
+   const match = AMOUNT_PATTERN.exec(String(text).trim());
+   if (!match) throw new TypeError(`Not an amount: ${text}`);
+ 
+   const [, sign, whole, fraction = ''] = match;
+-  if (fraction.length > DECIMALS) {
++  if (fraction.length > decimals) {
+     throw new RangeError(`${text} has more decimals than ${currency} allows`);
+   }
+-  const major = Number(whole.replaceAll(',', ''));
+-  const minor = Number(fraction.padEnd(DECIMALS, '0'));
+-  const amount = major * MINOR_PER_MAJOR + minor;
+-  assertMinorUnits(amount);
++  const digits = BigInt(whole.replaceAll(',', '') + fraction.padEnd(decimals, '0'));
++  if (digits > BigInt(Number.MAX_SAFE_INTEGER)) {
++    throw new TypeError(`${text} is too large to represent`);
++  }
++  const amount = Number(digits);
+   return sign && amount !== 0 ? -amount : amount;
+ }
+ 
+-/** Decimal text without a currency code: "1,234.50", "-0.05". */
++/** Decimal text without a currency code: "1,234.50", "-0.05", "1,500" for JPY. */
+ export function formatPlain(amount, currency) {
+-  assertCurrency(currency);
++  const decimals = minorUnitDigits(currency);
+   assertMinorUnits(amount);
+-  const absolute = Math.abs(amount);
+-  const major = Math.floor(absolute / MINOR_PER_MAJOR);
+-  const minor = absolute % MINOR_PER_MAJOR;
++  const digits = String(Math.abs(amount)).padStart(decimals + 1, '0');
++  const major = digits.slice(0, digits.length - decimals);
++  const minor = digits.slice(digits.length - decimals);
+   const sign = amount < 0 ? '-' : '';
+-  return `${sign}${groupThousands(String(major))}.${String(minor).padStart(DECIMALS, '0')}`;
++  return `${sign}${groupThousands(major)}${decimals > 0 ? `.${minor}` : ''}`;
+ }
+ 
+ /** Decimal text with the currency code in front: "USD 1,234.50". */
+diff --git a/src/proration.mjs b/src/proration.mjs
+index 8eee5e6..177557c 100644
+--- a/src/proration.mjs
++++ b/src/proration.mjs
+@@ -3,7 +3,7 @@
+  * mid-period, and what that part of a price comes to.
+  */
+ 
+-import { addDays, compareDates, daysBetween } from './dates.mjs';
++import { compareDates, daysBetween } from './dates.mjs';
+ import { assertMinorUnits } from './money.mjs';
+ import { scaleRounded } from './rounding.mjs';
+ 
+@@ -19,14 +19,13 @@ export function periodLengthDays(period) {
+ }
+ 
+ /**
+- * The share of a period left at a change date, as whole days. The change day
+- * itself was already paid for under the old plan, so the time left starts on
+- * the following day.
++ * The share of a period left at a change date, as whole days. The new plan
++ * starts on the change date, so that day counts as time left.
+  */
+ export function prorationFraction(period, changeDate) {
+   assertWithinPeriod(period, changeDate);
+   return {
+-    remaining: daysBetween(addDays(changeDate, 1), period.end),
++    remaining: daysBetween(changeDate, period.end),
+     total: periodLengthDays(period),
+   };
+ }
+diff --git a/src/schedule.mjs b/src/schedule.mjs
+index 9dfe897..6d4273a 100644
+--- a/src/schedule.mjs
++++ b/src/schedule.mjs
+@@ -2,11 +2,12 @@
+  * Billing periods. A subscription renews every `intervalMonths` months from
+  * its anchor date. A period runs from its start up to, but not including, its
+  * end, and each period starts where the previous one ended.
++ *
++ * Every boundary is worked out from the anchor, never from the previous
++ * boundary, so a short month moves one renewal and leaves the billing day alone.
+  */
+ 
+-import { compareDates, formatIsoDate, parseIsoDate } from './dates.mjs';
+-
+-const MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
++import { addMonths, compareDates, parseIsoDate } from './dates.mjs';
+ 
+ function assertInterval(intervalMonths) {
+   if (!Number.isInteger(intervalMonths) || intervalMonths < 1) {
+@@ -14,17 +15,17 @@ function assertInterval(intervalMonths) {
+   }
+ }
+ 
+-/** The next renewal date after `date`, keeping its day where the month allows. */
+-function nextBoundary(date, intervalMonths) {
+-  const { year, month, day } = parseIsoDate(date);
+-  const monthIndex = year * 12 + (month - 1) + intervalMonths;
+-  const nextYear = Math.floor(monthIndex / 12);
+-  const nextMonth = monthIndex - nextYear * 12;
+-  return formatIsoDate({
+-    year: nextYear,
+-    month: nextMonth + 1,
+-    day: Math.min(day, MONTH_LENGTHS[nextMonth]),
+-  });
++/** The start of the period at `index`; the end of period `index - 1`. */
++function boundaryAt(anchor, intervalMonths, index) {
++  return addMonths(anchor, intervalMonths * index);
++}
++
++function periodFor(anchor, intervalMonths, index) {
++  return {
++    index,
++    start: boundaryAt(anchor, intervalMonths, index),
++    end: boundaryAt(anchor, intervalMonths, index + 1),
++  };
+ }
+ 
+ /** The period at a zero-based index. */
+@@ -34,9 +35,7 @@ export function periodAt(anchor, intervalMonths, index) {
+     throw new RangeError(`index must be a non-negative integer, got ${index}`);
+   }
+   parseIsoDate(anchor);
+-  let start = anchor;
+-  for (let i = 0; i < index; i += 1) start = nextBoundary(start, intervalMonths);
+-  return { index, start, end: nextBoundary(start, intervalMonths) };
++  return periodFor(anchor, intervalMonths, index);
+ }
+ 
+ /** The first `count` billing periods from the anchor. */
+@@ -44,11 +43,8 @@ export function billingPeriods(anchor, intervalMonths, count) {
+   assertInterval(intervalMonths);
+   parseIsoDate(anchor);
+   const periods = [];
+-  let start = anchor;
+   for (let index = 0; index < count; index += 1) {
+-    const end = nextBoundary(start, intervalMonths);
+-    periods.push({ index, start, end });
+-    start = end;
++    periods.push(periodFor(anchor, intervalMonths, index));
+   }
+   return periods;
+ }
+@@ -56,15 +52,18 @@ export function billingPeriods(anchor, intervalMonths, count) {
+ /** The period a date falls in. Dates before the anchor have no period. */
+ export function periodContaining(anchor, intervalMonths, date) {
+   assertInterval(intervalMonths);
++  parseIsoDate(anchor);
+   if (compareDates(date, anchor) < 0) {
+     throw new RangeError(`${date} is before the subscription anchor ${anchor}`);
+   }
+-  let index = 0;
+-  let start = anchor;
++  const from = parseIsoDate(anchor);
++  const to = parseIsoDate(date);
++  const months = (to.year - from.year) * 12 + (to.month - from.month);
++  // Start a little before the answer, then walk forward to it.
++  let index = Math.max(0, Math.floor(months / intervalMonths) - 1);
+   for (;;) {
+-    const end = nextBoundary(start, intervalMonths);
+-    if (compareDates(date, end) < 0) return { index, start, end };
+-    start = end;
++    const period = periodFor(anchor, intervalMonths, index);
++    if (compareDates(date, period.end) < 0) return period;
+     index += 1;
+   }
+ }
+@@ -72,10 +71,10 @@ export function periodContaining(anchor, intervalMonths, date) {
+ /** The first `count` renewal dates strictly after `date`. */
+ export function renewalsAfter(anchor, intervalMonths, date, count) {
+   const renewals = [];
+-  let period = periodContaining(anchor, intervalMonths, date);
++  let { index } = periodContaining(anchor, intervalMonths, date);
+   while (renewals.length < count) {
+-    renewals.push(period.end);
+-    period = periodContaining(anchor, intervalMonths, period.end);
++    renewals.push(boundaryAt(anchor, intervalMonths, index + 1));
++    index += 1;
+   }
+   return renewals;
+ }
+diff --git a/src/statement.mjs b/src/statement.mjs
+index 920327b..e68b567 100644
+--- a/src/statement.mjs
++++ b/src/statement.mjs
+@@ -5,7 +5,7 @@
+ 
+ import { invoiceBalance } from './credit-note.mjs';
+ import { formatLongDate } from './dates.mjs';
+-import { formatAmount } from './money.mjs';
++import { formatAmount, formatPlain } from './money.mjs';
+ 
+ const DESCRIPTION_WIDTH = 44;
+ const NUMBER_WIDTH = 12;
+@@ -15,8 +15,8 @@ function row(description, ...numbers) {
+   return [String(description).padEnd(DESCRIPTION_WIDTH), ...cells].join(' ').trimEnd();
+ }
+ 
+-function cell(minor) {
+-  return (minor / 100).toFixed(2);
++function cell(minor, currency) {
++  return formatPlain(minor, currency).replaceAll(',', '');
+ }
+ 
+ function ratePercent(rateBps) {
+@@ -25,15 +25,16 @@ function ratePercent(rateBps) {
+ }
+ 
+ function invoiceLines(invoice) {
++  const { currency } = invoice;
+   const header = row('Description', 'Amount', 'Discount', 'Net', 'Tax', 'Gross');
+   const body = invoice.lines.map((line) =>
+     row(
+       line.description,
+-      cell(line.amount),
+-      cell(line.discount),
+-      cell(line.net),
+-      cell(line.tax),
+-      cell(line.gross),
++      cell(line.amount, currency),
++      cell(line.discount, currency),
++      cell(line.net, currency),
++      cell(line.tax, currency),
++      cell(line.gross, currency),
+     ),
+   );
+   return [header, ...body];
+@@ -45,7 +46,17 @@ function creditNoteLines(invoice, notes) {
+     out.push('', `Credit note ${note.number} on ${formatLongDate(note.date)}`);
+     if (note.reason) out.push(`Reason: ${note.reason}`);
+     for (const line of note.lines) {
+-      out.push(row(line.description, '', '', cell(-line.net), cell(-line.tax), cell(-line.gross)));
++      const { currency } = invoice;
++      out.push(
++        row(
++          line.description,
++          '',
++          '',
++          cell(-line.net, currency),
++          cell(-line.tax, currency),
++          cell(-line.gross, currency),
++        ),
++      );
+     }
+     out.push(`Credited: ${formatAmount(-note.total, invoice.currency)}`);
+   }
+diff --git a/src/tax.mjs b/src/tax.mjs
+index fc6af8a..2b31c45 100644
+--- a/src/tax.mjs
++++ b/src/tax.mjs
+@@ -32,12 +32,57 @@ function groupByRate(lines) {
+   return groups;
+ }
+ 
++function floorDivide(numerator, denominator) {
++  const quotient = numerator / denominator;
++  return numerator % denominator < 0n ? quotient - 1n : quotient;
++}
++
++/**
++ * Splits a rate group's tax between its lines. Each line starts at its exact
++ * tax rounded down; the units still missing from the group's tax go to the
++ * lines with the largest fractions, earlier lines first on a tie. So the line
++ * taxes add up to the group tax, and each is within one minor unit of
++ * `net * rate`.
++ */
++function splitGroupTax(members, rateBps, groupTax) {
++  const divisor = BigInt(BASIS_POINTS);
++  const shares = members.map(({ line }) => {
++    const exact = BigInt(line.net) * BigInt(rateBps);
++    const whole = floorDivide(exact, divisor);
++    return { whole, fraction: exact - whole * divisor };
++  });
++  let missing = BigInt(groupTax) - shares.reduce((sum, share) => sum + share.whole, 0n);
++  const order = shares
++    .map((share, index) => ({ share, index }))
++    .sort((a, b) => {
++      if (a.share.fraction !== b.share.fraction) return a.share.fraction > b.share.fraction ? -1 : 1;
++      return a.index - b.index;
++    });
++  for (const { share } of order) {
++    if (missing <= 0n) break;
++    share.whole += 1n;
++    missing -= 1n;
++  }
++  return shares.map((share) => Number(share.whole));
++}
++
+ /** Adds `tax` and `gross` to each discounted line. */
+ export function applyTax(lines) {
+-  return lines.map((line) => {
+-    const tax = taxForAmount(line.net, line.taxRateBps);
+-    return { ...line, tax, gross: line.net + tax };
+-  });
++  const taxes = new Array(lines.length);
++  for (const [rateBps, members] of groupByRate(lines)) {
++    const groupTax = taxForAmount(
++      members.reduce((sum, { line }) => sum + line.net, 0),
++      rateBps,
++    );
++    splitGroupTax(members, rateBps, groupTax).forEach((tax, i) => {
++      taxes[members[i].position] = tax;
++    });
++  }
++  return lines.map((line, position) => ({
++    ...line,
++    tax: taxes[position],
++    gross: line.net + taxes[position],
++  }));
+ }
+ 
+ /** One row per rate: the taxable amount and the tax due on it. */

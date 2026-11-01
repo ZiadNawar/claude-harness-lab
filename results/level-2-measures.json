@@ -1,0 +1,314 @@
+{
+  "claude": {
+    "id": "l2-claude-run-1-20261031-144742",
+    "wallSeconds": 296.5,
+    "toolSeconds": 16,
+    "otherSeconds": 280,
+    "longestSteps": [
+      {
+        "seq": 17,
+        "seconds": 5,
+        "what": "cd /c/invoice-work/c477547a/workspace && cat src/index.mjs | head -140 | tail -90; npm test 2>&1 | tail -30; c"
+      },
+      {
+        "seq": 2,
+        "seconds": 2,
+        "what": "git ls-files"
+      },
+      {
+        "seq": 70,
+        "seconds": 2,
+        "what": "npm test 2>&1 | grep -vE \"^npm|^\\s+at \" | grep -B2 -A14 \"✖\" | head -80; npm test 2>&1 | grep -E \"ℹ (pass|fail)"
+      },
+      {
+        "seq": 67,
+        "seconds": 1,
+        "what": "npm test 2>&1 | grep -E \"^(✖|ℹ (pass|fail))|not ok|Error\" | head -30"
+      },
+      {
+        "seq": 71,
+        "seconds": 1,
+        "what": "sed -i 's/\\[1001, 1003, 1007\\]/[1001, 1003, 697]/' test/regression-cases.mjs && npm test 2>&1 | grep -E \"ℹ (pa"
+      }
+    ],
+    "requestsInTrace": 39,
+    "traceTokens": {
+      "uncached": 78,
+      "cached": 3205544,
+      "cacheWrite": 103081,
+      "output": 1053
+    },
+    "factsTokens": {
+      "uncached": 78,
+      "cached": 3205544,
+      "cacheWrite": 103081,
+      "output": 40411
+    },
+    "filesInFixture": 55,
+    "filesShownToModel": 47,
+    "notShown": [
+      ".gitignore",
+      "test/book-cases.mjs",
+      "test/calendar-cases.mjs",
+      "test/catalog-cases.mjs",
+      "test/credit-note-cases.mjs",
+      "test/invoice-cases.mjs",
+      "test/money-cases.mjs",
+      "test/reporting-cases.mjs"
+    ],
+    "firstShownOrder": [
+      "4:CHANGELOG.md",
+      "4:docs/principles.md",
+      "4:docs/proration.md",
+      "4:docs/rounding.md",
+      "4:package.json",
+      "4:README.md",
+      "5:src/core/currencies.mjs",
+      "5:src/core/dates.mjs",
+      "5:src/core/money.mjs",
+      "5:src/core/rounding.mjs",
+      "5:src/core/sequence.mjs",
+      "5:src/core/validate.mjs"
+    ],
+    "averageShareOfDistinctiveLinesShown": 86,
+    "diskFirstReadSeconds": {
+      "first": 1.29824267578125,
+      "median": 279.00180517578127,
+      "last": 279.0255773925781,
+      "count": 36
+    },
+    "homeFiles": 471,
+    "homeMegabytes": 3,
+    "homeTopFolders": [
+      [
+        "Temp/node-compile-cache",
+        455
+      ],
+      [
+        "AppData/Local",
+        6
+      ],
+      [
+        ".claude/backups",
+        2
+      ],
+      [
+        ".claude/.claude.json",
+        1
+      ],
+      [
+        ".claude/.last-cleanup",
+        1
+      ],
+      [
+        ".claude/policy-limits.json",
+        1
+      ]
+    ]
+  },
+  "opencode": {
+    "id": "l2-opencode-run-2-20261031-144742",
+    "wallSeconds": 386.3,
+    "toolSeconds": 138,
+    "otherSeconds": 248,
+    "longestSteps": [
+      {
+        "seq": 83,
+        "seconds": 12,
+        "what": "write"
+      },
+      {
+        "seq": 75,
+        "seconds": 11,
+        "what": "cd C:\\invoice-work\\a882719a\\workspace; mkdir C:\\invoice-home\\a882719a\\Temp\\opencode -Force | out-null; @' impo"
+      },
+      {
+        "seq": 26,
+        "seconds": 6,
+        "what": "write"
+      },
+      {
+        "seq": 81,
+        "seconds": 6,
+        "what": "cd C:\\invoice-work\\a882719a\\workspace; $t=gc CHANGELOG.md -Raw; $new=@' # Changelog ## 0.9.3 Billing fixes. "
+      },
+      {
+        "seq": 11,
+        "seconds": 5,
+        "what": "cd C:\\invoice-work\\a882719a\\workspace; grep -rnE \"periodAfter|couponFor|nextCouponUses|couponUses|/ 100|\\* 100"
+      }
+    ],
+    "requestsInTrace": 44,
+    "traceTokens": {
+      "uncached": 90,
+      "cached": 4014300,
+      "cacheWrite": 128276,
+      "output": 25935
+    },
+    "factsTokens": {
+      "uncached": 94,
+      "cached": 4014300,
+      "cacheWrite": 129712,
+      "output": 25956
+    },
+    "filesInFixture": 55,
+    "filesShownToModel": 52,
+    "notShown": [
+      ".gitignore",
+      "test/catalog-cases.mjs",
+      "test/reporting-cases.mjs"
+    ],
+    "firstShownOrder": [
+      "1:package.json",
+      "3:src/catalog/catalog.mjs",
+      "3:src/catalog/plans.mjs",
+      "3:src/core/currencies.mjs",
+      "3:src/core/dates.mjs",
+      "3:src/core/money.mjs",
+      "3:src/core/rounding.mjs",
+      "3:src/core/sequence.mjs",
+      "3:src/core/validate.mjs",
+      "3:src/schedule/periods.mjs",
+      "5:CHANGELOG.md",
+      "5:docs/principles.md"
+    ],
+    "averageShareOfDistinctiveLinesShown": 96,
+    "diskFirstReadSeconds": {
+      "first": 12.460955322265624,
+      "median": 374.2868864746094,
+      "last": 386.0201044921875,
+      "count": 34
+    },
+    "homeFiles": 614,
+    "homeMegabytes": 25,
+    "homeTopFolders": [
+      [
+        "Temp/node-compile-cache",
+        455
+      ],
+      [
+        ".local/share",
+        147
+      ],
+      [
+        "AppData/Local",
+        7
+      ],
+      [
+        ".cache/opencode",
+        1
+      ],
+      [
+        "Temp/.bun-698196520-3cba9b8dc4fa4e45.node",
+        1
+      ],
+      [
+        "Temp/.bun-698196520-a8fac683dfbaa7a.dll",
+        1
+      ]
+    ]
+  },
+  "codex": {
+    "id": "l2-codex-run-3-20261031-144742",
+    "wallSeconds": 1290.8,
+    "toolSeconds": 40,
+    "otherSeconds": 1250,
+    "longestSteps": [
+      {
+        "seq": 57,
+        "seconds": 5,
+        "what": "cd C:\\invoice-work\\7ee08c44\\workspace\\src; function Rep($f,$old,$new){ $c=Get-Content $f -Raw; if(-not $c.Cont"
+      },
+      {
+        "seq": 2,
+        "seconds": 3,
+        "what": "cd C:\\invoice-work\\7ee08c44\\workspace; cat docs/proration.md docs/rounding.md README.md CHANGELOG.md; cd src; "
+      },
+      {
+        "seq": 25,
+        "seconds": 2,
+        "what": "cd C:\\invoice-work\\7ee08c44\\workspace; npm test 2>&1 | Select-Object -Last 25; cd src; Get-Content reporting/f"
+      },
+      {
+        "seq": 1,
+        "seconds": 1,
+        "what": "cd C:\\invoice-work\\7ee08c44\\workspace; Get-ChildItem -Recurse -File -Exclude *.lock | ? { $_.FullName -notmatc"
+      },
+      {
+        "seq": 4,
+        "seconds": 1,
+        "what": "cd C:\\invoice-work\\7ee08c44\\workspace; Get-Content docs/proration.md, docs/rounding.md, README.md, CHANGELOG.m"
+      }
+    ],
+    "requestsInTrace": 33,
+    "traceTokens": {
+      "uncached": 509786,
+      "cached": 1655439,
+      "cacheWrite": 128890,
+      "output": 153647
+    },
+    "factsTokens": {
+      "uncached": 2294115,
+      "cached": 1655439,
+      "cacheWrite": 128890,
+      "output": 153647
+    },
+    "filesInFixture": 55,
+    "filesShownToModel": 51,
+    "notShown": [
+      ".gitignore",
+      "test/catalog-cases.mjs",
+      "test/money-cases.mjs",
+      "test/reporting-cases.mjs"
+    ],
+    "firstShownOrder": [
+      "1:docs/principles.md",
+      "1:package.json",
+      "2:src/core/currencies.mjs",
+      "2:src/core/dates.mjs",
+      "2:src/core/rounding.mjs",
+      "2:src/core/sequence.mjs",
+      "2:src/core/validate.mjs",
+      "4:CHANGELOG.md",
+      "4:docs/proration.md",
+      "4:docs/rounding.md",
+      "4:README.md",
+      "4:src/core/money.mjs"
+    ],
+    "averageShareOfDistinctiveLinesShown": 91,
+    "diskFirstReadSeconds": {
+      "first": 932.4077038574219,
+      "median": 1273.8689331054688,
+      "last": 1273.8846716308594,
+      "count": 34
+    },
+    "homeFiles": 5956,
+    "homeMegabytes": 87,
+    "homeTopFolders": [
+      [
+        ".codex/.tmp",
+        5436
+      ],
+      [
+        "Temp/node-compile-cache",
+        455
+      ],
+      [
+        ".codex/skills",
+        49
+      ],
+      [
+        ".codex/.sandbox",
+        1
+      ],
+      [
+        ".codex/.sandbox_migration",
+        1
+      ],
+      [
+        ".codex/.sqlite-maintenance.lock",
+        1
+      ]
+    ]
+  }
+}

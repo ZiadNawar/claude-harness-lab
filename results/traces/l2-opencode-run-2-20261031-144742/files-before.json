@@ -1,0 +1,390 @@
+{
+ "taken": "2026-10-31T13:52:47.449Z",
+ "files": [
+  {
+   "path": ".gitignore",
+   "size": 14,
+   "mtimeMs": 1793428864498.577,
+   "atimeMs": 1793454766028.629,
+   "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97"
+  },
+  {
+   "path": "CHANGELOG.md",
+   "size": 2431,
+   "mtimeMs": 1793428900367.8523,
+   "atimeMs": 1793454766030.032,
+   "sha256": "a8cf4cf6be9c9826b3d75b422dd9fb3e4caef0d6cd75b2a520f91c7179967c98"
+  },
+  {
+   "path": "README.md",
+   "size": 2242,
+   "mtimeMs": 1793428875967.428,
+   "atimeMs": 1793454766030.032,
+   "sha256": "c6a3247a254eb8294ea7dccacf69687e6d1a733bb1e81801c855d31ab0a75df9"
+  },
+  {
+   "path": "docs/principles.md",
+   "size": 2039,
+   "mtimeMs": 1793428883122.7888,
+   "atimeMs": 1793454766030.032,
+   "sha256": "0dc9e092b1b3c922f1c71b11ecf6a23a10c08a12bfda76a71ced298f5538cea2"
+  },
+  {
+   "path": "docs/proration.md",
+   "size": 1383,
+   "mtimeMs": 1793428887855.1658,
+   "atimeMs": 1793454766046.7349,
+   "sha256": "ba90cd743352cb77b3d56a924e82a9064eb1d8c295eafee658af7994f0ee3645"
+  },
+  {
+   "path": "docs/rounding.md",
+   "size": 724,
+   "mtimeMs": 1793429803478.9807,
+   "atimeMs": 1793454766050.4705,
+   "sha256": "f3bbcf9a1401b039ea71d14db60b30c686032267cf0ae9c920b814f35096567a"
+  },
+  {
+   "path": "package.json",
+   "size": 387,
+   "mtimeMs": 1793429249233.6448,
+   "atimeMs": 1793454766054.7292,
+   "sha256": "a93ee4d3665a243753a666db101f638e05fd386e4ef8139585910d02b1a0368e"
+  },
+  {
+   "path": "src/book.mjs",
+   "size": 14693,
+   "mtimeMs": 1793429803467.9844,
+   "atimeMs": 1793454766060.858,
+   "sha256": "43345b4d72d97928405d9c7bf1aa0a624f6803770eb213fef4598492604d71b3"
+  },
+  {
+   "path": "src/catalog/catalog.mjs",
+   "size": 1587,
+   "mtimeMs": 1793428864543.67,
+   "atimeMs": 1793454766068.001,
+   "sha256": "4d84e756bbaae03106375e0f60befd5d56eaa4e76b7752740475b3783d4f9e7e"
+  },
+  {
+   "path": "src/catalog/plans.mjs",
+   "size": 5211,
+   "mtimeMs": 1793428864546.5198,
+   "atimeMs": 1793454766072.6177,
+   "sha256": "75af84da038b0c80c50f8d80182323bfacbe52569cef363e43502525e8fc35c2"
+  },
+  {
+   "path": "src/core/currencies.mjs",
+   "size": 1835,
+   "mtimeMs": 1793428864579.114,
+   "atimeMs": 1793454766072.6177,
+   "sha256": "92488614859fbf7e3f6dd63944ab70cb565b93e6c7d7680d0e19cfe4cfd82b6f"
+  },
+  {
+   "path": "src/core/dates.mjs",
+   "size": 3335,
+   "mtimeMs": 1793428864577.1064,
+   "atimeMs": 1793454766072.6177,
+   "sha256": "23cad2e5f567511eedaceb4172250eabfada84d4435f2c68213ff602d57b4888"
+  },
+  {
+   "path": "src/core/money.mjs",
+   "size": 2282,
+   "mtimeMs": 1793429803403.3015,
+   "atimeMs": 1793454766072.6177,
+   "sha256": "f36c9bea5a843cb1ccfdd395fa44127ed9ccfc56d8c0603781440e5def2e4abb"
+  },
+  {
+   "path": "src/core/rounding.mjs",
+   "size": 2094,
+   "mtimeMs": 1793428864579.114,
+   "atimeMs": 1793454766087.6692,
+   "sha256": "fcdf63dc06bb3d0a791b8f77bf6f7f9bcdc29fdceb65c0d110585b99dc902c91"
+  },
+  {
+   "path": "src/core/sequence.mjs",
+   "size": 726,
+   "mtimeMs": 1793428864583.8242,
+   "atimeMs": 1793454766087.6692,
+   "sha256": "e4ec0e8977351eb40be5e6f0e73736854197ea7cb991c095f22822307158899f"
+  },
+  {
+   "path": "src/core/validate.mjs",
+   "size": 1619,
+   "mtimeMs": 1793428864575.0952,
+   "atimeMs": 1793454766100.6814,
+   "sha256": "454fc829df9ce9a1201545c0bd80a4aa89610de3ab6b5ec9596864e57fefc6cd"
+  },
+  {
+   "path": "src/customers/registry.mjs",
+   "size": 4364,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766105.7202,
+   "sha256": "5e9e27bbaa7b6fa18a9d5014b79aab3cff31d51c7a9a4f8fad8635f4549b8daf"
+  },
+  {
+   "path": "src/index.mjs",
+   "size": 3189,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766107.729,
+   "sha256": "16bc8b81cc1dfd85e2b3dde7be9d981a59a53a50ffd51436d53b8729b6f02467"
+  },
+  {
+   "path": "src/invoicing/allocation.mjs",
+   "size": 1093,
+   "mtimeMs": 1793429803420.5337,
+   "atimeMs": 1793454766113.724,
+   "sha256": "c9659491b3938bacfed53620f2f105dece712ca4c2f1fa84a14224459493d407"
+  },
+  {
+   "path": "src/invoicing/discounts.mjs",
+   "size": 1578,
+   "mtimeMs": 1793428864559.1248,
+   "atimeMs": 1793454766120.787,
+   "sha256": "9a05a240492d86f7437d7edd3d6cae32870eb244a4d7074252f73ba51ca8743d"
+  },
+  {
+   "path": "src/invoicing/invoice.mjs",
+   "size": 2827,
+   "mtimeMs": 1793428864553.0813,
+   "atimeMs": 1793454766123.8738,
+   "sha256": "5c2541c7dc8f16ba0725fc34a9161eb7a35d1fbc4d1841c3cec2eddfb145f176"
+  },
+  {
+   "path": "src/invoicing/pipeline.mjs",
+   "size": 1813,
+   "mtimeMs": 1793429803450.4365,
+   "atimeMs": 1793454766126.852,
+   "sha256": "5d5fabee042f8f3eb07e2f98f8d500af965c08cbd6b792b019716a7972a09109"
+  },
+  {
+   "path": "src/ledger/account.mjs",
+   "size": 1613,
+   "mtimeMs": 1793428864524.746,
+   "atimeMs": 1793454766126.852,
+   "sha256": "53fb3a70c4804df8dbc812dae90fe03bf61587bd17dd721b2d398f22ec457b32"
+  },
+  {
+   "path": "src/ledger/balances.mjs",
+   "size": 1691,
+   "mtimeMs": 1793429803460.5405,
+   "atimeMs": 1793454766135.465,
+   "sha256": "70237265e7e9552ac0a2c4efe6a1a0c662b28377522ec9d9624b28e67d89595a"
+  },
+  {
+   "path": "src/ledger/credit-notes.mjs",
+   "size": 4992,
+   "mtimeMs": 1793429803439.9165,
+   "atimeMs": 1793454766140.1147,
+   "sha256": "56cd44532bc89354f373dfb4fc38c42a6ea5f3be962cec381112bbf4a0fc9557"
+  },
+  {
+   "path": "src/ledger/dunning.mjs",
+   "size": 2892,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766144.2832,
+   "sha256": "09bdcc2d7fd804c48715329028722f353052f1c53394389a9c45f6cec525b322"
+  },
+  {
+   "path": "src/ledger/instalments.mjs",
+   "size": 1859,
+   "mtimeMs": 1793428864518.7434,
+   "atimeMs": 1793454766148.545,
+   "sha256": "933bb7788ad859b8affbf723f8ca0fb57a1a1d5d25b67c5235b97d8a4d495a5a"
+  },
+  {
+   "path": "src/ledger/journal.mjs",
+   "size": 2958,
+   "mtimeMs": 1793428864519.7446,
+   "atimeMs": 1793454766152.9023,
+   "sha256": "0b609b477f02be55712f1ff494a5d084b50b9b0cbba042cf16921f7d6fc1bfdf"
+  },
+  {
+   "path": "src/ledger/settlement.mjs",
+   "size": 1147,
+   "mtimeMs": 1793429803463.974,
+   "atimeMs": 1793454766157.298,
+   "sha256": "bddf1e9d3651ce45967c9d868eb018626eaaa90a9bf15063caab2dc82e973735"
+  },
+  {
+   "path": "src/reporting/customer.mjs",
+   "size": 2120,
+   "mtimeMs": 1793428864540.1475,
+   "atimeMs": 1793454766162.2996,
+   "sha256": "2ac8a46c049c5ac517850cd6ea9df0df7047da6f1906b6c4f3a4efb8a0a3fe4a"
+  },
+  {
+   "path": "src/reporting/export.mjs",
+   "size": 3564,
+   "mtimeMs": 1793429803420.5337,
+   "atimeMs": 1793454766166.2966,
+   "sha256": "6a96cb21f25d1c2ba70b6adec2f066e510541f4d41d99eb09e7ba0569b6044a4"
+  },
+  {
+   "path": "src/reporting/forecast.mjs",
+   "size": 3464,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766166.2966,
+   "sha256": "5274e6f1571107960b30f6db2333df5f7320c336ee9b3ec4945d1c3495d1b35e"
+  },
+  {
+   "path": "src/reporting/fx.mjs",
+   "size": 2744,
+   "mtimeMs": 1793428864527.7444,
+   "atimeMs": 1793454766166.2966,
+   "sha256": "90aab6468537a17c25395665fb694851924a917ecc05776fcd05a55d3d091b7f"
+  },
+  {
+   "path": "src/reporting/notices.mjs",
+   "size": 4652,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766166.2966,
+   "sha256": "e62e60e4de9f0896b8a3307eca22e31a8d7247503e2e52a9acb72cda3bba299c"
+  },
+  {
+   "path": "src/reporting/revenue.mjs",
+   "size": 2866,
+   "mtimeMs": 1793429803471.0112,
+   "atimeMs": 1793454766180.0415,
+   "sha256": "16291fdbcf4d1bb98e691e8ab53abf42bf2a448706b675598d7718e7a0d75b97"
+  },
+  {
+   "path": "src/reporting/statement.mjs",
+   "size": 3050,
+   "mtimeMs": 1793429803420.5337,
+   "atimeMs": 1793454766183.9368,
+   "sha256": "afc580cce47f8233a99240f984090b41183ce421ef7b83f9e0742fe1f97ad13a"
+  },
+  {
+   "path": "src/reporting/tax-report.mjs",
+   "size": 1231,
+   "mtimeMs": 1793429803474.9763,
+   "atimeMs": 1793454766183.9368,
+   "sha256": "a22212b1d1678457be09db1327c0c0ffd3ad72f497edeedcccc630d31c8fc674"
+  },
+  {
+   "path": "src/schedule/periods.mjs",
+   "size": 3700,
+   "mtimeMs": 1793429803402.3013,
+   "atimeMs": 1793454766195.4932,
+   "sha256": "fca428dedc82ada3fa8081e55fc8a3ddbd3f89fb1f79806735316d6b4149f11a"
+  },
+  {
+   "path": "src/subscriptions/plan-change.mjs",
+   "size": 3403,
+   "mtimeMs": 1793429803448.4377,
+   "atimeMs": 1793454766199.8218,
+   "sha256": "98a23f03b11a46547a8a05f93500fb93f3102b88222e3013433a8b1393eb062f"
+  },
+  {
+   "path": "src/subscriptions/proration.mjs",
+   "size": 1841,
+   "mtimeMs": 1793429803403.3015,
+   "atimeMs": 1793454766203.573,
+   "sha256": "f9ccf1e2db88ccbbcef79bfbae51aecc9a599378269e114aef877058e80f9048"
+  },
+  {
+   "path": "src/subscriptions/record.mjs",
+   "size": 2032,
+   "mtimeMs": 1793429803450.4365,
+   "atimeMs": 1793454766207.5754,
+   "sha256": "629af8632f199e90da430744b1e9c7234ae9601d28fda27fbed21160981325c6"
+  },
+  {
+   "path": "src/subscriptions/renewal.mjs",
+   "size": 2329,
+   "mtimeMs": 1793429803403.3015,
+   "atimeMs": 1793454766211.5718,
+   "sha256": "8c46fd886d3dcc6ebea00f7860ccf97863199de3f556962457c90dc093755320"
+  },
+  {
+   "path": "src/subscriptions/scheduled-changes.mjs",
+   "size": 1254,
+   "mtimeMs": 1793428864564.7502,
+   "atimeMs": 1793454766215.5725,
+   "sha256": "9d608995129ff52a9b7c45c0021558b37327e4510ac758b8c28eb99f15853295"
+  },
+  {
+   "path": "src/subscriptions/segments.mjs",
+   "size": 1419,
+   "mtimeMs": 1793429803444.435,
+   "atimeMs": 1793454766220.6172,
+   "sha256": "7b93fcf417d991fa769e3ea29f36e7fcff29f7ccbf4794be03b417429646bf74"
+  },
+  {
+   "path": "src/subscriptions/timeline.mjs",
+   "size": 1045,
+   "mtimeMs": 1793428864564.7502,
+   "atimeMs": 1793454766220.6172,
+   "sha256": "57e6f8c297181230ee652e0f3d602d4d7d8c13860209d6eea5ef39eb69d7331f"
+  },
+  {
+   "path": "src/tax/calculate.mjs",
+   "size": 1454,
+   "mtimeMs": 1793429803435.9023,
+   "atimeMs": 1793454766225.42,
+   "sha256": "020d23b5166a76372ada50abf3e75c4e8ce8809b79bc4fa0539f5b249caa6945"
+  },
+  {
+   "path": "src/tax/rates.mjs",
+   "size": 2051,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766231.3257,
+   "sha256": "1db46b854fc5dbd2ef6ab76ee10a2be8618a872aec702981f3800c86280dbf76"
+  },
+  {
+   "path": "test/book-cases.mjs",
+   "size": 10285,
+   "mtimeMs": 1793429014778.7039,
+   "atimeMs": 1793454766231.3257,
+   "sha256": "eacbee6c2c099877d3d5968598d743100a6970fc10b3a075a9b88d1288721d63"
+  },
+  {
+   "path": "test/calendar-cases.mjs",
+   "size": 4084,
+   "mtimeMs": 1793428921973.7603,
+   "atimeMs": 1793454766237.9185,
+   "sha256": "f44ca79064200785ee1fac656245b471bc744bd10a50302df92722645c80f829"
+  },
+  {
+   "path": "test/catalog-cases.mjs",
+   "size": 6415,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766237.9185,
+   "sha256": "49244a1b6463ceb060e46ed6393b9e1318b0e0f83de0c5ba7eab42e3aefdd3ad"
+  },
+  {
+   "path": "test/credit-note-cases.mjs",
+   "size": 2973,
+   "mtimeMs": 1793428982421.5967,
+   "atimeMs": 1793454766246.9688,
+   "sha256": "e9de9ee2e6360b4f68e255d084350de55a92f3bcdc9429f1b69725fd2bfd0d5d"
+  },
+  {
+   "path": "test/invoice-cases.mjs",
+   "size": 5230,
+   "mtimeMs": 1793428972029.5708,
+   "atimeMs": 1793454766248.4778,
+   "sha256": "db708f68116c349af3cb721c951ba63f025e0b3bef30335906896d4f2cb2089b"
+  },
+  {
+   "path": "test/money-cases.mjs",
+   "size": 3880,
+   "mtimeMs": 1793428935624.7708,
+   "atimeMs": 1793454766248.4778,
+   "sha256": "34919e7ff105cee8d6009b5460e9ec029cdda9bf6f188a6813bc53039912807f"
+  },
+  {
+   "path": "test/reporting-cases.mjs",
+   "size": 10624,
+   "mtimeMs": 1793429802784.455,
+   "atimeMs": 1793454766248.4778,
+   "sha256": "8da59352859a7d74ea588611ecb8418507960daf8d26fe7a4b2bb1d3f3c84896"
+  },
+  {
+   "path": "test/support/world.mjs",
+   "size": 1047,
+   "mtimeMs": 1793428907823.554,
+   "atimeMs": 1793454766248.4778,
+   "sha256": "005804da094094b30bea3600f25f0dc14bf5f4a1539dd39ff517cf81e07cee42"
+  }
+ ]
+}

@@ -1,0 +1,348 @@
+{
+  "reference": {
+    "frames": 4,
+    "first record (3 acknowledged records after it)": {
+      "bytes": 142,
+      "refused": 142,
+      "keptAll": 0,
+      "lost": {},
+      "examples": []
+    },
+    "second-last record (1 after it)": {
+      "bytes": 142,
+      "refused": 142,
+      "keptAll": 0,
+      "lost": {},
+      "examples": []
+    },
+    "last record": {
+      "bytes": 142,
+      "refused": 0,
+      "keptAll": 0,
+      "lost": {
+        "1": 142
+      },
+      "examples": [
+        {
+          "byteInFrame": 0,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 1,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 2,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 3,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        }
+      ]
+    },
+    "4,096 zero bytes after the last record": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma",
+        "delta"
+      ]
+    },
+    "32 random bytes after the last record": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma",
+        "delta"
+      ]
+    },
+    "last record cut in half": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma"
+      ]
+    }
+  },
+  "claude": {
+    "frames": 4,
+    "first record (3 acknowledged records after it)": {
+      "bytes": 142,
+      "refused": 142,
+      "keptAll": 0,
+      "lost": {},
+      "examples": []
+    },
+    "second-last record (1 after it)": {
+      "bytes": 142,
+      "refused": 142,
+      "keptAll": 0,
+      "lost": {},
+      "examples": []
+    },
+    "last record": {
+      "bytes": 142,
+      "refused": 0,
+      "keptAll": 0,
+      "lost": {
+        "1": 142
+      },
+      "examples": [
+        {
+          "byteInFrame": 0,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 1,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 2,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 3,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        }
+      ]
+    },
+    "4,096 zero bytes after the last record": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma",
+        "delta"
+      ]
+    },
+    "32 random bytes after the last record": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma",
+        "delta"
+      ]
+    },
+    "last record cut in half": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma"
+      ]
+    }
+  },
+  "opencode": {
+    "frames": 4,
+    "first record (3 acknowledged records after it)": {
+      "bytes": 142,
+      "refused": 140,
+      "keptAll": 0,
+      "lost": {
+        "4": 2
+      },
+      "examples": [
+        {
+          "byteInFrame": 3,
+          "kept": []
+        },
+        {
+          "byteInFrame": 4,
+          "kept": []
+        }
+      ]
+    },
+    "second-last record (1 after it)": {
+      "bytes": 142,
+      "refused": 140,
+      "keptAll": 0,
+      "lost": {
+        "2": 2
+      },
+      "examples": [
+        {
+          "byteInFrame": 3,
+          "kept": [
+            "alpha",
+            "beta"
+          ]
+        },
+        {
+          "byteInFrame": 4,
+          "kept": [
+            "alpha",
+            "beta"
+          ]
+        }
+      ]
+    },
+    "last record": {
+      "bytes": 142,
+      "refused": 4,
+      "keptAll": 0,
+      "lost": {
+        "1": 138
+      },
+      "examples": [
+        {
+          "byteInFrame": 3,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 4,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 6,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 7,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        }
+      ]
+    },
+    "4,096 zero bytes after the last record": {
+      "refused": "CorruptLogError"
+    },
+    "32 random bytes after the last record": {
+      "refused": "CorruptLogError"
+    },
+    "last record cut in half": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma"
+      ]
+    }
+  },
+  "codex": {
+    "frames": 4,
+    "first record (3 acknowledged records after it)": {
+      "bytes": 142,
+      "refused": 142,
+      "keptAll": 0,
+      "lost": {},
+      "examples": []
+    },
+    "second-last record (1 after it)": {
+      "bytes": 142,
+      "refused": 142,
+      "keptAll": 0,
+      "lost": {},
+      "examples": []
+    },
+    "last record": {
+      "bytes": 142,
+      "refused": 0,
+      "keptAll": 0,
+      "lost": {
+        "1": 142
+      },
+      "examples": [
+        {
+          "byteInFrame": 0,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 1,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 2,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        },
+        {
+          "byteInFrame": 3,
+          "kept": [
+            "alpha",
+            "beta",
+            "gamma"
+          ]
+        }
+      ]
+    },
+    "4,096 zero bytes after the last record": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma",
+        "delta"
+      ]
+    },
+    "32 random bytes after the last record": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma",
+        "delta"
+      ]
+    },
+    "last record cut in half": {
+      "kept": [
+        "alpha",
+        "beta",
+        "gamma"
+      ]
+    }
+  }
+}

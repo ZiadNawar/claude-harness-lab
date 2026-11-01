@@ -1,0 +1,305 @@
+{
+  "claude": {
+    "id": "l3-claude-pilot-1-20261031-160903",
+    "wallSeconds": 1019.9,
+    "toolSeconds": 55,
+    "otherSeconds": 964,
+    "longestSteps": [
+      {
+        "seq": 48,
+        "seconds": 9,
+        "what": "npm test 2>&1 | tail -60"
+      },
+      {
+        "seq": 114,
+        "seconds": 8,
+        "what": "node -e \" const fs=require('fs'); let s=fs.readFileSync('test/consistency.mjs','utf8'); s=s.replace(\\\" const "
+      },
+      {
+        "seq": 136,
+        "seconds": 8,
+        "what": "rm -f stress7.out stress19.out && npm test 2>&1 | grep -E \"^ℹ (pass|fail)|✖\"; git status --short | grep -v \"^ "
+      },
+      {
+        "seq": 111,
+        "seconds": 7,
+        "what": "node -e \" const fs=require('fs'); const lines=fs.readFileSync('test/rfc-007.mjs','utf8').split('\\n'); const re"
+      },
+      {
+        "seq": 91,
+        "seconds": 6,
+        "what": "npm test 2>&1 | grep -E \"^ℹ (pass|fail)|✖|Error\" | head -30"
+      }
+    ],
+    "requestsInTrace": 68,
+    "traceTokens": {
+      "uncached": 140,
+      "cached": 9165632,
+      "cacheWrite": 182965,
+      "output": 1540
+    },
+    "factsTokens": {
+      "uncached": 140,
+      "cached": 9165632,
+      "cacheWrite": 182965,
+      "output": 102937
+    },
+    "filesInFixture": 55,
+    "filesShownToModel": 53,
+    "notShown": [
+      ".gitignore",
+      "test/backoff-schedule.mjs"
+    ],
+    "firstShownOrder": [
+      "5:docs/guarantees.md",
+      "6:docs/crash-testing.md",
+      "7:docs/rfc-007-exactly-once-completion.md",
+      "8:docs/wal-format.md",
+      "9:docs/architecture.md",
+      "10:docs/api.md",
+      "11:docs/compaction.md",
+      "12:docs/leases-and-retries.md",
+      "13:docs/operations.md",
+      "14:package.json",
+      "16:src/frame.mjs",
+      "17:src/wal.mjs"
+    ],
+    "averageShareOfDistinctiveLinesShown": 98,
+    "diskFirstReadSeconds": {
+      "first": 7.435893798828125,
+      "median": 922.8452463378907,
+      "last": 924.2337770996094,
+      "count": 34
+    },
+    "homeFiles": 476,
+    "homeMegabytes": 3,
+    "homeTopFolders": [
+      [
+        "Temp/node-compile-cache",
+        455
+      ],
+      [
+        "AppData/Local",
+        9
+      ],
+      [
+        ".claude/backups",
+        2
+      ],
+      [
+        "Temp/claude",
+        2
+      ],
+      [
+        ".claude/.claude.json",
+        1
+      ],
+      [
+        ".claude/.last-cleanup",
+        1
+      ]
+    ]
+  },
+  "opencode": {
+    "id": "l3-opencode-run-2-20261031-164519",
+    "wallSeconds": 1108.1,
+    "toolSeconds": 647,
+    "otherSeconds": 462,
+    "longestSteps": [
+      {
+        "seq": 107,
+        "seconds": 111,
+        "what": "Start-Sleep -Seconds 110; Get-Content C:\\invoice-home\\2a068fa9\\.local\\share\\opencode\\shell\\93bd26f72e7a32f329b"
+      },
+      {
+        "seq": 105,
+        "seconds": 101,
+        "what": "Start-Sleep -Seconds 100; Get-Content C:\\invoice-home\\2a068fa9\\.local\\share\\opencode\\shell\\93bd26f72e7a32f329b"
+      },
+      {
+        "seq": 108,
+        "seconds": 62,
+        "what": "Start-Sleep -Seconds 60; Get-Content C:\\invoice-home\\2a068fa9\\.local\\share\\opencode\\shell\\93bd26f72e7a32f329bb"
+      },
+      {
+        "seq": 68,
+        "seconds": 36,
+        "what": "write"
+      },
+      {
+        "seq": 91,
+        "seconds": 32,
+        "what": "write"
+      }
+    ],
+    "requestsInTrace": 55,
+    "traceTokens": {
+      "uncached": 116,
+      "cached": 6431632,
+      "cacheWrite": 170195,
+      "output": 61877
+    },
+    "factsTokens": {
+      "uncached": 120,
+      "cached": 6431632,
+      "cacheWrite": 171977,
+      "output": 62167
+    },
+    "filesInFixture": 55,
+    "filesShownToModel": 54,
+    "notShown": [
+      ".gitignore"
+    ],
+    "firstShownOrder": [
+      "4:docs/api.md",
+      "4:docs/architecture.md",
+      "4:docs/compaction.md",
+      "4:docs/crash-testing.md",
+      "4:docs/guarantees.md",
+      "4:docs/leases-and-retries.md",
+      "4:docs/operations.md",
+      "4:docs/rfc-007-exactly-once-completion.md",
+      "4:docs/wal-format.md",
+      "4:package.json",
+      "5:src/backoff.mjs",
+      "5:src/clock.mjs"
+    ],
+    "averageShareOfDistinctiveLinesShown": 100,
+    "diskFirstReadSeconds": {
+      "first": 13.020146484375,
+      "median": 1036.5414958496094,
+      "last": 1107.7791848144532,
+      "count": 32
+    },
+    "homeFiles": 610,
+    "homeMegabytes": 28,
+    "homeTopFolders": [
+      [
+        "Temp/node-compile-cache",
+        455
+      ],
+      [
+        ".local/share",
+        138
+      ],
+      [
+        "Temp/opencode",
+        8
+      ],
+      [
+        "AppData/Local",
+        6
+      ],
+      [
+        "Temp/.bun-698196520-3cba9b8dc4fa4e45.node",
+        1
+      ],
+      [
+        "Temp/.bun-698196520-a8fac683dfbaa7a.dll",
+        1
+      ]
+    ]
+  },
+  "codex": {
+    "id": "l3-codex-run-3-20261031-164519",
+    "wallSeconds": 3299.4,
+    "toolSeconds": 191,
+    "otherSeconds": 3109,
+    "longestSteps": [
+      {
+        "seq": 87,
+        "seconds": 101,
+        "what": "write_stdin"
+      },
+      {
+        "seq": 79,
+        "seconds": 11,
+        "what": "function RW($p,$old,$new){ $f=\"$PWD/$p\"; $s=[IO.File]::ReadAllText($f); if(-not $s.Contains($old)){throw \"noma"
+      },
+      {
+        "seq": 85,
+        "seconds": 11,
+        "what": "(Get-Content fuzz.mjs -Raw).Replace(\"'../src/index.mjs'\",\"'./src/index.mjs'\") | Set-Content fuzz.mjs foreach($"
+      },
+      {
+        "seq": 94,
+        "seconds": 10,
+        "what": "function RW($p,$old,$new){ $f=\"$PWD/$p\"; $s=[IO.File]::ReadAllText($f); if(-not $s.Contains($old)){throw \"noma"
+      },
+      {
+        "seq": 82,
+        "seconds": 9,
+        "what": "function RW($p,$old,$new){ $f=\"$PWD/$p\"; $s=[IO.File]::ReadAllText($f); if(-not $s.Contains($old)){throw \"noma"
+      }
+    ],
+    "requestsInTrace": 42,
+    "traceTokens": {
+      "uncached": 224329,
+      "cached": 3137461,
+      "cacheWrite": 125951,
+      "output": 394387
+    },
+    "factsTokens": {
+      "uncached": 3487741,
+      "cached": 3137461,
+      "cacheWrite": 125951,
+      "output": 394387
+    },
+    "filesInFixture": 55,
+    "filesShownToModel": 52,
+    "notShown": [
+      ".gitignore",
+      "README.md",
+      "test/backoff-schedule.mjs"
+    ],
+    "firstShownOrder": [
+      "5:CHANGELOG.md",
+      "5:docs/api.md",
+      "5:docs/crash-testing.md",
+      "5:docs/guarantees.md",
+      "5:docs/operations.md",
+      "5:package.json",
+      "7:docs/rfc-007-exactly-once-completion.md",
+      "7:docs/wal-format.md",
+      "8:docs/architecture.md",
+      "8:docs/compaction.md",
+      "8:docs/leases-and-retries.md",
+      "10:src/frame.mjs"
+    ],
+    "averageShareOfDistinctiveLinesShown": 95,
+    "diskFirstReadSeconds": {
+      "first": 161.83535498046874,
+      "median": 3271.412663330078,
+      "last": 3281.1828344726564,
+      "count": 36
+    },
+    "homeFiles": 5960,
+    "homeMegabytes": 88,
+    "homeTopFolders": [
+      [
+        ".codex/.tmp",
+        5436
+      ],
+      [
+        "Temp/node-compile-cache",
+        455
+      ],
+      [
+        ".codex/skills",
+        49
+      ],
+      [
+        "Temp/walq-stress-4vq7N4",
+        2
+      ],
+      [
+        ".codex/.sandbox",
+        1
+      ],
+      [
+        ".codex/.sandbox_migration",
+        1
+      ]
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "source": "OpenCode session export",
+  "id": "ses_e6d5ce69bfferpaWVNbwP6DZ5y",
+  "projectID": "93bd26f72e7a32f329bb995ef48bd83ad2908574",
+  "model": {
+    "id": "claude-sonnet-5-5",
+    "providerID": "anthropic",
+    "variant": "medium"
+  },
+  "cost": 2.05026085,
+  "tokens": {
+    "input": 120,
+    "output": 62167,
+    "reasoning": 36224,
+    "cache": {
+      "read": 6431632,
+      "write": 171977
+    }
+  },
+  "outcome": "succeeded",
+  "time": {
+    "created": 1793461526166,
+    "updated": 1793462631595,
+    "idle": 1793462631600
+  },
+  "title": "I can't do this one from here. I'm a title generator in this setup: my only output is a short thr...",
+  "location": {
+    "directory": "C:\\invoice-work\\2a068fa9\\workspace"
+  }
+}

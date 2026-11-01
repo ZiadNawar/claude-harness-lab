@@ -1,0 +1,9 @@
+{
+  "name": "harness-lab-pins",
+  "private": true,
+  "description": "The exact harness versions the experiment runs. Install with npm ci.",
+  "dependencies": {
+    "@anthropic-ai/claude-code": "2.1.310",
+    "@openai/codex": "0.162.0-alpha.17.2"
+  }
+}

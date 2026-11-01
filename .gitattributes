@@ -1,0 +1,2 @@
+# Fixtures and hashes must be byte-exact on every machine.
+* -text

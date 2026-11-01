@@ -1,0 +1,6 @@
+path,disk,sizeBefore,sizeAfter,read,readDetail,edit,write,create,delete,search,list,inferred,inferredActions,diskRead,diskFirstReadSeconds,firstStep,lastStep,outside
+"package.json","","","","0","","0","0","0","0","0","0","1","read","","","1","1","false"
+"src/invoice.mjs","","","","1","","0","0","0","0","0","0","0","","","","3","3","false"
+"test/invoice-total.mjs","","","","1","","0","0","0","0","0","0","0","","","","4","4","false"
+"docs/rounding.md","","","","1","","0","0","0","0","0","0","0","","","","5","5","false"
+".","","","","0","","0","0","0","0","1","0","0","","","","7","7","false"

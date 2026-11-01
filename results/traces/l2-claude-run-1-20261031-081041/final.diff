@@ -1,0 +1,935 @@
+﻿ M docs/rounding.md
+ M src/book.mjs
+ M src/core/money.mjs
+ M src/invoicing/allocation.mjs
+ M src/invoicing/pipeline.mjs
+ M src/ledger/balances.mjs
+ M src/ledger/credit-notes.mjs
+ M src/ledger/settlement.mjs
+ M src/reporting/export.mjs
+ M src/reporting/revenue.mjs
+ M src/reporting/statement.mjs
+ M src/reporting/tax-report.mjs
+ M src/schedule/periods.mjs
+ M src/subscriptions/plan-change.mjs
+ M src/subscriptions/proration.mjs
+ M src/subscriptions/renewal.mjs
+ M src/subscriptions/segments.mjs
+ M src/tax/calculate.mjs
+?? test/regression-cases.mjs
+diff --git a/docs/rounding.md b/docs/rounding.md
+index 7a1b2bf..2681f29 100644
+--- a/docs/rounding.md
++++ b/docs/rounding.md
+@@ -5,10 +5,13 @@ use exact integer arithmetic and then round once.
+ 
+ ## The default mode
+ 
+-The default rounding mode is half-up: an exact half always rounds away from zero.
+-So 2.5 rounds to 3, 3.5 rounds to 4 and -2.5 rounds to -3.
++The default rounding mode is half-even (banker's rounding): an exact half rounds to
++the nearest even number, and anything else rounds to the nearest whole number. So
++2.5 rounds to 2, 3.5 rounds to 4 and -2.5 rounds to -2. Finance asked for this so
++that rounding does not lean upwards over many invoices (changelog 0.4.0).
+ 
+-This is the mode used for tax, discounts and proration.
++This is the mode used for tax, discounts, proration, currency translation and the
++other figures that need rounding.
+ 
+ ## Other modes
+ 
+@@ -16,11 +19,23 @@ Callers can pass a mode explicitly:
+ 
+ | Mode | 2.5 | 3.5 | 2.4 | -2.5 |
+ |---|---|---|---|---|
++| `half-even` (default) | 2 | 4 | 2 | -2 |
+ | `half-up` | 3 | 4 | 2 | -3 |
+ | `down` | 2 | 3 | 2 | -2 |
+ 
++`half-up` always rounds an exact half away from zero. `down` drops the fraction.
++
+ ## Sign
+ 
+ Rounding is symmetric. The result for a negative value is always the negative of
+ the result for the same positive value, so a credit rounds the same way as the
+ charge it reverses.
++
++## Splitting an amount
++
++When an amount has to be split across lines (a discount over the lines it applies
++to, tax over the lines in a rate group, an instalment plan), the parts always add up
++to the amount exactly. Each part is its exact share rounded down or up, and the spare
++units go to the parts with the largest fractions (the earlier line wins a tie). A
++line with no share gets nothing, and splitting a negative amount gives the mirror
++image of splitting the positive one.
+diff --git a/src/book.mjs b/src/book.mjs
+index 2e9ede0..6c289a2 100644
+--- a/src/book.mjs
++++ b/src/book.mjs
+@@ -10,12 +10,13 @@ import { UnknownRecordError } from './core/validate.mjs';
+ import { createSequence } from './core/sequence.mjs';
+ import { buildInvoice } from './invoicing/invoice.mjs';
+ import { createAccountLedger } from './ledger/account.mjs';
+-import { createSettlement, invoiceBalance } from './ledger/balances.mjs';
++import { cashReceived, createSettlement, invoiceBalance } from './ledger/balances.mjs';
+ import {
+   creditInvoiceInFull,
+   creditedToDate,
+   issueCreditNote,
+   remainingCreditable,
++  reversalsFromInvoice,
+ } from './ledger/credit-notes.mjs';
+ import { agingReport, dunningQueue } from './ledger/dunning.mjs';
+ import { buildJournal, entryImbalance, trialBalance } from './ledger/journal.mjs';
+@@ -88,9 +89,21 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+     return settlements.filter((settlement) => settlement.invoiceNumber === number);
+   }
+ 
+-  /** Everything already given back on an invoice's lines. */
++  /**
++   * Everything already given back on an invoice's lines: its credit notes, and the
++   * credit lines on later invoices that reverse part of it.
++   */
+   function drawnAgainst(number) {
+-    return notesOn(number);
++    const reversals = [...invoices.values()]
++      .flatMap(reversalsFromInvoice)
++      .filter((reversal) => reversal.invoiceNumber === number);
++    return [...notesOn(number), ...reversals];
++  }
++
++  /** Cash received on an invoice that has not gone back to the customer yet. */
++  function cashHeldOn(number) {
++    const refunded = notesOn(number).reduce((sum, note) => sum + (note.settlement?.refunded ?? 0), 0);
++    return cashReceived(settlementsOn(number)) - refunded;
+   }
+ 
+   function balanceOf(invoice) {
+@@ -102,10 +115,14 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+     return creditedToDate(origin, drawnAgainst(segment.invoiceNumber))[segment.lineIndex].net;
+   }
+ 
+-  /** Finishes an invoice and moves account credit as it says. */
++  /**
++   * Finishes an invoice and moves account credit as it says. The number is only
++   * taken once the invoice has been built, so a failed attempt leaves no gap.
++   */
+   function issue(input) {
+     const { customerId, currency } = input;
+     const invoice = buildInvoice({ ...input, accountCredit: account.balance(customerId, currency) });
++    invoiceNumbers.take();
+     invoices.set(invoice.number, invoice);
+     const details = { date: invoice.issueDate, reference: invoice.number };
+     if (invoice.creditApplied > 0) account.take(customerId, currency, invoice.creditApplied, details);
+@@ -121,7 +138,7 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+     const period = firstPeriod(record);
+     const invoice = issue(
+       draftPeriodInvoice(record, period, {
+-        number: invoiceNumbers.take(),
++        number: invoiceNumbers.peek(),
+         taxRateBps: taxRate(record, period.start),
+         discount,
+       }),
+@@ -147,7 +164,7 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+     const terms = applyScheduled(record);
+     const invoice = issue(
+       draftPeriodInvoice(terms, period, {
+-        number: invoiceNumbers.take(),
++        number: invoiceNumbers.peek(),
+         taxRateBps: taxRate(terms, period.start),
+         discount: options.discount,
+       }),
+@@ -168,7 +185,7 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+     const change = resolveChange(request);
+     const invoice = issue(
+       draftPlanChange(record, change, {
+-        number: invoiceNumbers.take(),
++        number: invoiceNumbers.peek(),
+         taxRateBps: taxRate(record, change.date),
+         reversedNet: reversedNetOnSegment(record.segment),
+       }),
+@@ -227,7 +244,7 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+       taxRateBps: taxRate(record, date),
+       reversedNet: reversedNetOnSegment(record.segment),
+     });
+-    const invoice = input ? issue({ ...input, number: invoiceNumbers.take() }) : null;
++    const invoice = input ? issue(input) : null;
+     subscriptions.set(id, endRecord(record, date));
+     timeline.record(id, 'cancelled', date, invoice ? { invoiceNumber: invoice.number } : {});
+     return invoice;
+@@ -249,6 +266,7 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+ 
+     const settlement = settleCreditNote(draft.total, {
+       openBalance: balanceOf(invoice),
++      cashAvailable: cashHeldOn(number),
+     });
+     const note = { ...draft, settlement };
+     notes.push(note);
+@@ -359,7 +377,7 @@ export function createBook({ catalog, taxTable = null, sellerRegion = null }) {
+     subscriberMovement: (month) => subscriberMovement([...subscriptions.values()], month),
+     churn: (month) => monthlyChurnBps([...subscriptions.values()], month),
+     subscribersByPlan: () => subscribersByPlan([...subscriptions.values()]),
+-    deferredRevenue: (currency, asOf) => deferredRevenue({ invoices: allInvoices(), currency, asOf }),
++    deferredRevenue: (currency, asOf) => deferredRevenue({ invoices: allInvoices(), notes, currency, asOf }),
+     revenueCsv: (currency) =>
+       revenueCsv(revenueByMonth({ invoices: allInvoices(), notes, currency }), currency),
+     journalCsv: () => journalCsv(journal()),
+diff --git a/src/core/money.mjs b/src/core/money.mjs
+index 44e257a..01892e1 100644
+--- a/src/core/money.mjs
++++ b/src/core/money.mjs
+@@ -1,13 +1,12 @@
+ /**
+  * Conversions between integer minor units and the decimal text people read
+- * and type, plus a few guarded integer helpers.
++ * and type, plus a few guarded integer helpers. How many decimals an amount
++ * has comes from the currency table.
+  */
+ 
+-import { assertCurrency } from './currencies.mjs';
++import { minorUnitDigits } from './currencies.mjs';
+ 
+ const AMOUNT_PATTERN = /^(-)?(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?$/;
+-const MINOR_PER_MAJOR = 100;
+-const DECIMALS = 2;
+ 
+ function groupThousands(digits) {
+   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+@@ -25,30 +24,35 @@ export function assertMinorUnits(value, label = 'amount') {
+  * the currency has is an error, never a silent rounding.
+  */
+ export function parseAmount(text, currency) {
+-  assertCurrency(currency);
++  const decimals = minorUnitDigits(currency);
+   const match = AMOUNT_PATTERN.exec(String(text).trim());
+   if (!match) throw new TypeError(`Not an amount: ${text}`);
+ 
+   const [, sign, whole, fraction = ''] = match;
+-  if (fraction.length > DECIMALS) {
++  if (fraction.length > decimals) {
+     throw new RangeError(`${text} has more decimals than ${currency} allows`);
+   }
+   const major = Number(whole.replaceAll(',', ''));
+-  const minor = Number(fraction.padEnd(DECIMALS, '0'));
+-  const amount = major * MINOR_PER_MAJOR + minor;
++  const minor = Number(fraction.padEnd(decimals, '0'));
++  const amount = major * 10 ** decimals + minor;
+   assertMinorUnits(amount);
+   return sign && amount !== 0 ? -amount : amount;
+ }
+ 
+-/** Decimal text without a currency code: "1,234.50", "-0.05". */
+-export function formatPlain(amount, currency) {
+-  assertCurrency(currency);
++/**
++ * Decimal text without a currency code: "1,234.50", "-0.05", "2,900" for yen.
++ * Pass `{ grouping: false }` to leave out the thousands separators.
++ */
++export function formatPlain(amount, currency, { grouping = true } = {}) {
++  const decimals = minorUnitDigits(currency);
+   assertMinorUnits(amount);
++  const factor = 10 ** decimals;
+   const absolute = Math.abs(amount);
+-  const major = Math.floor(absolute / MINOR_PER_MAJOR);
+-  const minor = absolute % MINOR_PER_MAJOR;
++  const whole = String(Math.floor(absolute / factor));
++  const major = grouping ? groupThousands(whole) : whole;
+   const sign = amount < 0 ? '-' : '';
+-  return `${sign}${groupThousands(String(major))}.${String(minor).padStart(DECIMALS, '0')}`;
++  if (decimals === 0) return `${sign}${major}`;
++  return `${sign}${major}.${String(absolute % factor).padStart(decimals, '0')}`;
+ }
+ 
+ /** Decimal text with the currency code in front: "USD 1,234.50". */
+diff --git a/src/invoicing/allocation.mjs b/src/invoicing/allocation.mjs
+index 4438314..21c553c 100644
+--- a/src/invoicing/allocation.mjs
++++ b/src/invoicing/allocation.mjs
+@@ -28,7 +28,25 @@ export function allocate(amount, weights) {
+     throw new RangeError('allocate needs at least one positive weight');
+   }
+ 
+-  const parts = weights.map((weight) => Math.round((amount * weight) / totalWeight));
+-  parts[parts.length - 1] += amount - sumAmounts(parts);
+-  return parts;
++  // Largest remainder method on exact integers: every part is its share rounded
++  // down or up, the spare units go to the biggest fractions (earlier lines win a
++  // tie), and a zero weight never has a fraction. The sign is applied last so a
++  // negative amount splits as the mirror of the positive one.
++  const magnitude = BigInt(Math.abs(amount));
++  const total = BigInt(totalWeight);
++  const shares = weights.map((weight) => {
++    const product = magnitude * BigInt(weight);
++    return { part: product / total, fraction: product % total };
++  });
++  let spare = Number(magnitude - shares.reduce((sum, { part }) => sum + part, 0n));
++  const byFraction = shares
++    .map((share, position) => ({ ...share, position }))
++    .sort((a, b) => (a.fraction === b.fraction ? a.position - b.position : a.fraction < b.fraction ? 1 : -1));
++  for (const { position } of byFraction) {
++    if (spare === 0) break;
++    shares[position].part += 1n;
++    spare -= 1;
++  }
++  const sign = amount < 0 ? -1 : 1;
++  return shares.map(({ part }) => (part === 0n ? 0 : sign * Number(part)));
+ }
+diff --git a/src/invoicing/pipeline.mjs b/src/invoicing/pipeline.mjs
+index cee913f..cb265a5 100644
+--- a/src/invoicing/pipeline.mjs
++++ b/src/invoicing/pipeline.mjs
+@@ -5,7 +5,6 @@
+ 
+ import { sumAmounts } from '../core/money.mjs';
+ import { applyTax, taxSummary } from '../tax/calculate.mjs';
+-import { allocate } from './allocation.mjs';
+ import { applyDiscount } from './discounts.mjs';
+ 
+ export function computeTotals(lines, summary) {
+@@ -16,18 +15,6 @@ export function computeTotals(lines, summary) {
+   return { subtotal, discountTotal, netTotal, taxTotal, total: netTotal + taxTotal };
+ }
+ 
+-export function applyAccountCredit(draft) {
+-  const weights = draft.lines.map((line) => Math.max(line.net, 0));
+-  const creditApplied = Math.min(draft.accountCredit, sumAmounts(weights));
+-  if (creditApplied === 0) return { ...draft, creditApplied };
+-  const shares = allocate(creditApplied, weights);
+-  return {
+-    ...draft,
+-    creditApplied,
+-    lines: draft.lines.map((line, position) => ({ ...line, net: line.net - shares[position] })),
+-  };
+-}
+-
+ function discountStage(draft) {
+   return { ...draft, lines: applyDiscount(draft.lines, draft.discount) };
+ }
+@@ -37,12 +24,18 @@ function taxStage(draft) {
+   return { ...draft, lines, taxSummary: taxSummary(lines) };
+ }
+ 
++/**
++ * Account credit pays the invoice the way a payment does: it takes nothing off
++ * what the invoice charges, so tax and revenue are worked out before it.
++ */
+ function totalsStage(draft) {
+   const totals = computeTotals(draft.lines, draft.taxSummary);
+-  return { ...draft, ...totals, amountDue: Math.max(totals.total, 0) };
++  const payable = Math.max(totals.total, 0);
++  const creditApplied = Math.min(draft.accountCredit, payable);
++  return { ...draft, ...totals, creditApplied, amountDue: payable - creditApplied };
+ }
+ 
+-const STAGES = [discountStage, applyAccountCredit, taxStage, totalsStage];
++const STAGES = [discountStage, taxStage, totalsStage];
+ 
+ export function runPipeline(draft) {
+   return STAGES.reduce((current, stage) => stage(current), draft);
+diff --git a/src/ledger/balances.mjs b/src/ledger/balances.mjs
+index 857674f..d7e87fc 100644
+--- a/src/ledger/balances.mjs
++++ b/src/ledger/balances.mjs
+@@ -40,10 +40,16 @@ function creditedAgainstBalance(notes) {
+ }
+ 
+ /**
+- * The amount still owed after credit notes and payments. A note carrying a
+- * settlement says how much of it went against the balance. A note issued on its
+- * own counts in full.
++ * The amount still owed after account credit, credit notes and payments. Account
++ * credit settles the invoice the way a payment does. A note carrying a settlement
++ * says how much of it went against the balance. A note issued on its own counts
++ * in full.
+  */
+ export function invoiceBalance(invoice, notes = [], settlements = []) {
+-  return Math.max(invoice.total, 0) - creditedAgainstBalance(notes) - settledTotal(settlements);
++  return (
++    Math.max(invoice.total, 0) -
++    (invoice.creditApplied ?? 0) -
++    creditedAgainstBalance(notes) -
++    settledTotal(settlements)
++  );
+ }
+diff --git a/src/ledger/credit-notes.mjs b/src/ledger/credit-notes.mjs
+index fd41592..40b7367 100644
+--- a/src/ledger/credit-notes.mjs
++++ b/src/ledger/credit-notes.mjs
+@@ -9,7 +9,7 @@
+ import { compareDates, parseIsoDate } from '../core/dates.mjs';
+ import { assertMinorUnits, parseAmount, sumAmounts } from '../core/money.mjs';
+ import { assertNonEmptyArray, assertText } from '../core/validate.mjs';
+-import { taxForAmount } from '../tax/calculate.mjs';
++import { scaleRounded } from '../core/rounding.mjs';
+ 
+ /** One entry per earlier invoice a new invoice gives money back on. */
+ export function reversalsFromInvoice(invoice) {
+@@ -51,10 +51,13 @@ export function creditedToDate(invoice, notes = []) {
+   return credited;
+ }
+ 
+-/** Per invoice line, the net amount that can still be credited. */
++/**
++ * Per invoice line, the net amount that can still be credited: what the customer
++ * was charged for the line after discount, less what has gone back already.
++ */
+ export function remainingCreditable(invoice, notes = []) {
+   const credited = creditedToDate(invoice, notes);
+-  return invoice.lines.map((line, index) => Math.max(line.amount - credited[index].net, 0));
++  return invoice.lines.map((line, index) => Math.max(line.net - credited[index].net, 0));
+ }
+ 
+ function requestedAmount(invoice, request, available) {
+@@ -74,14 +77,17 @@ function creditLine(invoice, entry, credited) {
+   }
+ 
+   const soFar = credited[entry.lineIndex];
+-  const available = Math.max(line.amount - soFar.net, 0);
++  const available = Math.max(line.net - soFar.net, 0);
+   const amount = requestedAmount(invoice, entry, available);
+-  if (amount <= 0 || amount > line.amount) {
++  if (amount <= 0 || amount > available) {
+     throw new RangeError(`Cannot credit ${amount} on line ${entry.lineIndex} of ${invoice.number}`);
+   }
+ 
+-  const tax = taxForAmount(amount, line.taxRateBps);
+-  credited[entry.lineIndex] = { net: soFar.net + amount, tax: soFar.tax + tax };
++  // Tax goes back as it was charged: the total credited so far carries its share of
++  // the line's tax, rounded once, so crediting the lot returns exactly the line's tax.
++  const creditedNet = soFar.net + amount;
++  const tax = scaleRounded(creditedNet, line.tax, line.net) - soFar.tax;
++  credited[entry.lineIndex] = { net: creditedNet, tax: soFar.tax + tax };
+   return {
+     lineIndex: entry.lineIndex,
+     description: line.description,
+diff --git a/src/ledger/settlement.mjs b/src/ledger/settlement.mjs
+index 5dbc9da..7c7fba6 100644
+--- a/src/ledger/settlement.mjs
++++ b/src/ledger/settlement.mjs
+@@ -7,11 +7,14 @@
+  * @param {number} noteTotal
+  * @param {object} position
+  * @param {number} position.openBalance what is still owed on the invoice
++ * @param {number} position.cashAvailable cash received on the invoice that has not
++ *   gone back yet
+  */
+-export function settleCreditNote(noteTotal, { openBalance }) {
++export function settleCreditNote(noteTotal, { openBalance, cashAvailable }) {
+   const againstBalance = Math.min(noteTotal, Math.max(openBalance, 0));
+-  const refunded = noteTotal - againstBalance;
+-  const toAccount = 0;
++  const beyond = noteTotal - againstBalance;
++  const refunded = Math.min(beyond, Math.max(cashAvailable, 0));
++  const toAccount = beyond - refunded;
+   return Object.freeze({ againstBalance, refunded, toAccount });
+ }
+ 
+diff --git a/src/reporting/export.mjs b/src/reporting/export.mjs
+index 14d3d41..1961e96 100644
+--- a/src/reporting/export.mjs
++++ b/src/reporting/export.mjs
+@@ -3,8 +3,10 @@
+  * JSON snapshot of the whole book for the nightly backup.
+  */
+ 
+-function decimal(amount) {
+-  return (amount / 100).toFixed(2);
++import { formatPlain } from '../core/money.mjs';
++
++function decimal(amount, currency) {
++  return formatPlain(amount, currency, { grouping: false });
+ }
+ 
+ function quote(value) {
+diff --git a/src/reporting/revenue.mjs b/src/reporting/revenue.mjs
+index f0efa04..f69a699 100644
+--- a/src/reporting/revenue.mjs
++++ b/src/reporting/revenue.mjs
+@@ -34,7 +34,7 @@ export function revenueByMonth({ invoices, notes, currency }) {
+   for (const invoice of invoices.filter((entry) => entry.currency === currency)) {
+     for (const line of invoice.lines) spreadLine(months, invoice, line);
+   }
+-  for (const note of notes) {
++  for (const note of notes.filter((entry) => entry.currency === currency)) {
+     addTo(months, monthKey(note.date), -note.netTotal);
+   }
+   return [...months]
+@@ -44,27 +44,33 @@ export function revenueByMonth({ invoices, notes, currency }) {
+ 
+ /**
+  * Deferred revenue: what has been invoiced for time that has not happened yet, as
+- * of a date. Only lines with a service period count. A line whose period is over
+- * has nothing left to defer, and one that has not started defers all of it.
++ * of a date. Only lines with a service period count. What credit notes issued by then gave back on a line is no longer owed as
++ * service. A line whose period is over has nothing left to defer, and one that has
++ * not started defers all of it.
+  */
+-export function deferredRevenue({ invoices, currency, asOf }) {
++export function deferredRevenue({ invoices, notes = [], currency, asOf }) {
+   parseIsoDate(asOf);
+   let total = 0;
+   for (const invoice of invoices) {
+     if (invoice.currency !== currency) continue;
+-    for (const line of invoice.lines) {
+-      if (!line.period || line.net === 0) continue;
+-      total += deferredPart(line, asOf);
++    const credited = invoice.lines.map(() => 0);
++    for (const note of notes) {
++      if (note.invoiceNumber !== invoice.number || compareDates(note.date, asOf) > 0) continue;
++      for (const { lineIndex, net } of note.lines) credited[lineIndex] += net;
+     }
++    invoice.lines.forEach((line, position) => {
++      if (!line.period || line.net === 0) return;
++      total += deferredPart(line, line.net - credited[position], asOf);
++    });
+   }
+   return total;
+ }
+ 
+-function deferredPart(line, asOf) {
++function deferredPart(line, net, asOf) {
+   const { start, end } = line.period;
+   if (compareDates(asOf, end) >= 0) return 0;
+-  if (compareDates(asOf, start) < 0) return line.net;
+-  return scaleRounded(line.net, daysBetween(asOf, end), daysBetween(start, end));
++  if (compareDates(asOf, start) < 0) return net;
++  return scaleRounded(net, daysBetween(asOf, end), daysBetween(start, end));
+ }
+ 
+ /** Revenue rows per quarter, from the rows of revenueByMonth. */
+diff --git a/src/reporting/statement.mjs b/src/reporting/statement.mjs
+index e496799..878cb70 100644
+--- a/src/reporting/statement.mjs
++++ b/src/reporting/statement.mjs
+@@ -4,7 +4,7 @@
+  */
+ 
+ import { formatLongDate } from '../core/dates.mjs';
+-import { formatAmount } from '../core/money.mjs';
++import { formatAmount, formatPlain } from '../core/money.mjs';
+ import { invoiceBalance } from '../ledger/balances.mjs';
+ 
+ const DESCRIPTION_WIDTH = 44;
+@@ -15,8 +15,8 @@ function row(description, ...numbers) {
+   return [String(description).padEnd(DESCRIPTION_WIDTH), ...cells].join(' ').trimEnd();
+ }
+ 
+-function cell(minor) {
+-  return (minor / 100).toFixed(2);
++function cell(minor, currency) {
++  return formatPlain(minor, currency, { grouping: false });
+ }
+ 
+ function ratePercent(rateBps) {
+@@ -25,15 +25,16 @@ function ratePercent(rateBps) {
+ }
+ 
+ function invoiceLines(invoice) {
++  const { currency } = invoice;
+   const header = row('Description', 'Amount', 'Discount', 'Net', 'Tax', 'Gross');
+   const body = invoice.lines.map((line) =>
+     row(
+       line.description,
+-      cell(line.amount),
+-      cell(line.discount),
+-      cell(line.net),
+-      cell(line.tax),
+-      cell(line.gross),
++      cell(line.amount, currency),
++      cell(line.discount, currency),
++      cell(line.net, currency),
++      cell(line.tax, currency),
++      cell(line.gross, currency),
+     ),
+   );
+   return [header, ...body];
+@@ -45,7 +46,16 @@ function creditNoteLines(invoice, notes) {
+     out.push('', `Credit note ${note.number} on ${formatLongDate(note.date)}`);
+     if (note.reason) out.push(`Reason: ${note.reason}`);
+     for (const line of note.lines) {
+-      out.push(row(line.description, '', '', cell(-line.net), cell(-line.tax), cell(-line.gross)));
++      out.push(
++        row(
++          line.description,
++          '',
++          '',
++          cell(-line.net, invoice.currency),
++          cell(-line.tax, invoice.currency),
++          cell(-line.gross, invoice.currency),
++        ),
++      );
+     }
+     out.push(`Credited: ${formatAmount(-note.total, invoice.currency)}`);
+   }
+diff --git a/src/reporting/tax-report.mjs b/src/reporting/tax-report.mjs
+index 2c9bfc9..f7498ff 100644
+--- a/src/reporting/tax-report.mjs
++++ b/src/reporting/tax-report.mjs
+@@ -22,7 +22,7 @@ export function taxReport({ invoices, notes, currency, month }) {
+     }
+   }
+   for (const note of notes) {
+-    if (monthKey(note.date) !== month) continue;
++    if (note.currency !== currency || monthKey(note.date) !== month) continue;
+     for (const line of note.lines) {
+       const row = rowFor(rows, line.taxRateBps);
+       row.taxable -= line.net;
+diff --git a/src/schedule/periods.mjs b/src/schedule/periods.mjs
+index 48965c3..fa23049 100644
+--- a/src/schedule/periods.mjs
++++ b/src/schedule/periods.mjs
+@@ -5,54 +5,41 @@
+  */
+ 
+ import {
++  addMonths,
+   compareDates,
+   daysBetween,
+   firstOfNextMonth,
+-  formatIsoDate,
+   monthKey,
+   parseIsoDate,
+ } from '../core/dates.mjs';
+ 
+-const MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+-
+ function assertInterval(intervalMonths) {
+   if (!Number.isInteger(intervalMonths) || intervalMonths < 1) {
+     throw new RangeError(`intervalMonths must be a positive integer, got ${intervalMonths}`);
+   }
+ }
+ 
+-/** The renewal date after `date`, keeping its day where the month allows. */
+-function nextBoundary(date, intervalMonths) {
+-  const { year, month, day } = parseIsoDate(date);
+-  const monthIndex = year * 12 + (month - 1) + intervalMonths;
+-  const nextYear = Math.floor(monthIndex / 12);
+-  const nextMonth = monthIndex - nextYear * 12;
+-  return formatIsoDate({
+-    year: nextYear,
+-    month: nextMonth + 1,
+-    day: Math.min(day, MONTH_LENGTHS[nextMonth]),
+-  });
+-}
+-
+-/** The period that follows the given one. */
+-export function periodAfter(period, intervalMonths) {
+-  return {
+-    index: period.index + 1,
+-    start: period.end,
+-    end: nextBoundary(period.end, intervalMonths),
+-  };
+-}
+-
+-/** The period at a zero-based index. */
++/**
++ * The period at a zero-based index. Every boundary is counted from the anchor
++ * rather than from the previous boundary, so a short month only moves its own
++ * renewal: a 31 January anchor renews on 28 February, then on 31 March.
++ */
+ export function periodAt(anchor, intervalMonths, index) {
+   assertInterval(intervalMonths);
+   if (!Number.isInteger(index) || index < 0) {
+     throw new RangeError(`index must be a non-negative integer, got ${index}`);
+   }
+   parseIsoDate(anchor);
+-  let period = { index: 0, start: anchor, end: nextBoundary(anchor, intervalMonths) };
+-  while (period.index < index) period = periodAfter(period, intervalMonths);
+-  return period;
++  return {
++    index,
++    start: addMonths(anchor, intervalMonths * index),
++    end: addMonths(anchor, intervalMonths * (index + 1)),
++  };
++}
++
++/** The period that follows the given one. */
++export function periodAfter(anchor, intervalMonths, period) {
++  return periodAt(anchor, intervalMonths, period.index + 1);
+ }
+ 
+ /** The first `count` billing periods from the anchor. */
+@@ -73,7 +60,7 @@ export function periodContaining(anchor, intervalMonths, date) {
+     throw new RangeError(`${date} is before the subscription anchor ${anchor}`);
+   }
+   let period = periodAt(anchor, intervalMonths, 0);
+-  while (compareDates(date, period.end) >= 0) period = periodAfter(period, intervalMonths);
++  while (compareDates(date, period.end) >= 0) period = periodAfter(anchor, intervalMonths, period);
+   return period;
+ }
+ 
+@@ -83,7 +70,7 @@ export function renewalsAfter(anchor, intervalMonths, date, count) {
+   let period = periodContaining(anchor, intervalMonths, date);
+   while (renewals.length < count) {
+     renewals.push(period.end);
+-    period = periodAfter(period, intervalMonths);
++    period = periodAfter(anchor, intervalMonths, period);
+   }
+   return renewals;
+ }
+diff --git a/src/subscriptions/plan-change.mjs b/src/subscriptions/plan-change.mjs
+index e847f93..72b1dae 100644
+--- a/src/subscriptions/plan-change.mjs
++++ b/src/subscriptions/plan-change.mjs
+@@ -6,8 +6,8 @@
+ 
+ import { seatCharge } from '../catalog/plans.mjs';
+ import { prorateAmount } from './proration.mjs';
+-import { assertChangeAllowed, createRecord, updateRecord } from './record.mjs';
+-import { discountFor, nextCouponUses } from './renewal.mjs';
++import { assertChangeAllowed, updateRecord } from './record.mjs';
++import { currentDiscount } from './renewal.mjs';
+ import { chargeLineIndex, reversalLink, segmentFor, unusedCredit } from './segments.mjs';
+ 
+ function resolveTerms(record, change) {
+@@ -40,7 +40,8 @@ export function draftPlanChange(record, change, context) {
+     lines.push({
+       description: `Unused ${record.plan.name} ${label}`,
+       unitAmount: -credit,
+-      taxRateBps,
++      // Unused time goes back at the rate it was charged at.
++      taxRateBps: record.segment.taxRateBps,
+       period: servicePeriod,
+       reverses: reversalLink(record.segment),
+     });
+@@ -58,7 +59,7 @@ export function draftPlanChange(record, change, context) {
+     subscriptionId: record.id,
+     currency: record.currency,
+     issueDate: date,
+-    discount: discountFor(record, period.index),
++    discount: currentDiscount(record),
+     lines,
+   };
+ }
+@@ -67,14 +68,13 @@ export function draftPlanChange(record, change, context) {
+ export function applyPlanChange(record, change, invoice) {
+   const { plan, seats } = resolveTerms(record, change);
+   const index = chargeLineIndex(invoice);
+-  const changes = {
+-    couponUses: nextCouponUses(record),
++  // A change inside a period does not use up a coupon period, and anything
++  // scheduled for the next renewal stays scheduled.
++  return updateRecord(record, {
+     plan,
+     seats,
+     segment: segmentFor(invoice, index, change.date, record.period.end),
+-  };
+-  // The new terms go through the same checks as a new subscription.
+-  return createRecord({ ...record, ...changes });
++  });
+ }
+ 
+ /**
+@@ -82,7 +82,7 @@ export function applyPlanChange(record, change, invoice) {
+  * nothing to give back.
+  */
+ export function draftCancellation(record, date, context) {
+-  const { number, taxRateBps, reversedNet } = context;
++  const { number, reversedNet } = context;
+   const credit = unusedCredit(record, date, reversedNet);
+   if (credit === 0) return null;
+   return {
+@@ -95,7 +95,7 @@ export function draftCancellation(record, date, context) {
+       {
+         description: `Unused ${record.plan.name} (${date} to ${record.period.end})`,
+         unitAmount: -credit,
+-        taxRateBps,
++        taxRateBps: record.segment.taxRateBps,
+         period: { start: date, end: record.period.end },
+         reverses: reversalLink(record.segment),
+       },
+diff --git a/src/subscriptions/proration.mjs b/src/subscriptions/proration.mjs
+index 31ca950..82fe1a3 100644
+--- a/src/subscriptions/proration.mjs
++++ b/src/subscriptions/proration.mjs
+@@ -3,11 +3,11 @@
+  * mid-period, and what that part of a price comes to.
+  */
+ 
+-import { addDays, compareDates, daysBetween } from '../core/dates.mjs';
++import { compareDates, daysBetween } from '../core/dates.mjs';
+ import { assertMinorUnits } from '../core/money.mjs';
+ import { scaleRounded } from '../core/rounding.mjs';
+ 
+-function assertWithinPeriod(period, date) {
++export function assertWithinPeriod(period, date) {
+   if (compareDates(date, period.start) < 0 || compareDates(date, period.end) >= 0) {
+     throw new RangeError(`${date} is outside the period ${period.start} to ${period.end}`);
+   }
+@@ -19,14 +19,13 @@ export function periodLengthDays(period) {
+ }
+ 
+ /**
+- * The share of a period left at a change date, as whole days. The change day
+- * itself was already paid for under the old plan, so the time left starts on the
+- * following day.
++ * The share of a period left at a change date, as whole days. The new terms
++ * start on the morning of the change date, so that day counts as time left.
+  */
+ export function prorationFraction(period, changeDate) {
+   assertWithinPeriod(period, changeDate);
+   return {
+-    remaining: daysBetween(addDays(changeDate, 1), period.end),
++    remaining: daysBetween(changeDate, period.end),
+     total: periodLengthDays(period),
+   };
+ }
+diff --git a/src/subscriptions/renewal.mjs b/src/subscriptions/renewal.mjs
+index a58d912..5259642 100644
+--- a/src/subscriptions/renewal.mjs
++++ b/src/subscriptions/renewal.mjs
+@@ -21,18 +21,30 @@ export function nextCouponUses(record) {
+   return record.coupon ? record.couponUses + 1 : 0;
+ }
+ 
+-/** The invoice discount for charges in a billing period, or null. */
+-export function discountFor(record, periodIndex) {
+-  const coupon = couponFor(record, periodIndex);
++/** The invoice discount for the period about to be billed, or null. */
++export function discountFor(record) {
++  const coupon = couponFor(record);
+   return coupon ? { percentBps: coupon.percentBps } : null;
+ }
+ 
++/**
++ * The invoice discount for a charge made inside the period the subscription is
++ * already in. That period has been counted against the coupon, so it is covered
++ * as long as it was one of the coupon's periods.
++ */
++export function currentDiscount(record) {
++  const { coupon } = record;
++  if (!coupon) return null;
++  if (coupon.periods !== null && record.couponUses > coupon.periods) return null;
++  return { percentBps: coupon.percentBps };
++}
++
+ export function firstPeriod(record) {
+   return periodAt(record.anchor, record.intervalMonths, 0);
+ }
+ 
+ export function nextPeriod(record) {
+-  return periodAfter(record.period, record.intervalMonths);
++  return periodAfter(record.anchor, record.intervalMonths, record.period);
+ }
+ 
+ function describeSeats(record) {
+@@ -51,7 +63,7 @@ export function draftPeriodInvoice(record, period, context) {
+     subscriptionId: record.id,
+     currency: record.currency,
+     issueDate: period.start,
+-    discount: discount ?? discountFor(record, period.index),
++    discount: discount ?? discountFor(record),
+     lines: [
+       {
+         description: `${describeSeats(record)} (${period.start} to ${period.end})`,
+diff --git a/src/subscriptions/segments.mjs b/src/subscriptions/segments.mjs
+index a678cd8..8518d50 100644
+--- a/src/subscriptions/segments.mjs
++++ b/src/subscriptions/segments.mjs
+@@ -4,8 +4,10 @@
+  * to after discount. A renewal starts a new segment, and so does a plan change.
+  */
+ 
+-import { seatCharge } from '../catalog/plans.mjs';
+-import { prorateAmount } from './proration.mjs';
++import { compareDates, daysBetween } from '../core/dates.mjs';
++import { scaleRounded } from '../core/rounding.mjs';
++import { BillingRuleError } from '../core/validate.mjs';
++import { assertWithinPeriod } from './proration.mjs';
+ 
+ export function segmentFor(invoice, lineIndex, from, to) {
+   const line = invoice.lines[lineIndex];
+@@ -30,15 +32,27 @@ export function reversalLink(segment) {
+ }
+ 
+ /**
+- * The credit for the rest of the current segment at `date`.
++ * The credit for the rest of the current segment at `date`: the part of what the
++ * customer was actually charged for it (after discount) that covers the days left,
++ * and never more than is still left to give back on that charge.
+  *
+  * @param {object} record the subscription
+- * @param {string} date the day the old terms stop
++ * @param {string} date the first day of the new terms
+  * @param {number} reversedNet what has already gone back on the segment's line
+  */
+ export function unusedCredit(record, date, reversedNet) {
+-  const { segment } = record;
+-  const price = seatCharge(record.plan, record.currency, record.seats);
+-  const unused = prorateAmount(price, record.period, date);
+-  return unused;
++  const { segment, period } = record;
++  assertWithinPeriod(period, date);
++  if (compareDates(date, segment.from) < 0) {
++    throw new BillingRuleError(`${date} is before the time paid for, which starts on ${segment.from}`, {
++      date,
++      segmentFrom: segment.from,
++    });
++  }
++  const unused = scaleRounded(
++    segment.net,
++    daysBetween(date, segment.to),
++    daysBetween(segment.from, segment.to),
++  );
++  return Math.min(unused, Math.max(segment.net - reversedNet, 0));
+ }
+diff --git a/src/tax/calculate.mjs b/src/tax/calculate.mjs
+index 6516eb6..ffa1178 100644
+--- a/src/tax/calculate.mjs
++++ b/src/tax/calculate.mjs
+@@ -27,12 +27,50 @@ export function taxForAmount(net, rateBps) {
+   return scaleRounded(net, rateBps, BASIS_POINTS);
+ }
+ 
+-/** Adds `tax` and `gross` to each discounted line. */
+-export function applyTax(lines) {
+-  return lines.map((line) => {
+-    const tax = taxForAmount(line.net, line.taxRateBps);
+-    return { ...line, tax, gross: line.net + tax };
++/**
++ * Spreads a rate group's tax over its lines. Each line gets its exact tax rounded
++ * down or up (so within one unit of it, whatever its sign), the spare units going
++ * to the lines with the biggest fractions, and the parts add up to `groupTax`.
++ */
++function spreadTax(members, rateBps, groupTax) {
++  const shares = members.map(({ line }) => {
++    const exact = BigInt(line.net) * BigInt(rateBps);
++    let whole = exact / BASIS_POINTS_BIG;
++    let fraction = exact % BASIS_POINTS_BIG;
++    if (fraction < 0n) {
++      whole -= 1n;
++      fraction += BASIS_POINTS_BIG;
++    }
++    return { tax: whole, fraction };
+   });
++  let spare = BigInt(groupTax) - shares.reduce((sum, { tax }) => sum + tax, 0n);
++  const byFraction = shares
++    .map((share, index) => ({ ...share, index }))
++    .sort((a, b) => (a.fraction === b.fraction ? a.index - b.index : a.fraction < b.fraction ? 1 : -1));
++  for (const { index } of byFraction) {
++    if (spare <= 0n) break;
++    shares[index].tax += 1n;
++    spare -= 1n;
++  }
++  return shares.map(({ tax }) => Number(tax));
++}
++
++const BASIS_POINTS_BIG = 10_000n;
++
++/**
++ * Adds `tax` and `gross` to each discounted line. The tax due is worked out per
++ * rate on the group's net amount, and the lines show how it is spread.
++ */
++export function applyTax(lines) {
++  const taxed = new Array(lines.length);
++  for (const [rateBps, members] of groupByRate(lines)) {
++    const groupTax = taxForAmount(taxableAmount(members), rateBps);
++    const spread = spreadTax(members, rateBps, groupTax);
++    members.forEach(({ line, position }, at) => {
++      taxed[position] = { ...line, tax: spread[at], gross: line.net + spread[at] };
++    });
++  }
++  return taxed;
+ }
+ 
+ /** One row per rate: the taxable amount and the tax due on it. */

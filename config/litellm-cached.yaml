@@ -1,0 +1,16 @@
+# Levels 2-4 only. Without these points, LiteLLM's route to Anthropic logged no cached tokens
+# in Task A, which would make a long Codex run cost several times the other harnesses for a
+# reason that belongs to the gateway's settings, not to Codex.
+model_list:
+  - model_name: claude-sonnet-5-5
+    litellm_params:
+      model: anthropic/claude-sonnet-5-5
+      api_key: os.environ/ANTHROPIC_API_KEY
+      cache_control_injection_points:
+        - location: message
+          role: system
+        - location: message
+          index: -1
+
+general_settings:
+  master_key: os.environ/LITELLM_API_KEY

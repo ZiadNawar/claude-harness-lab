@@ -1,0 +1,58 @@
+{
+  "reference": {
+    "scores": [
+      106,
+      106,
+      106,
+      106,
+      106
+    ],
+    "failedInRepeats": {}
+  },
+  "claude": {
+    "scores": [
+      99,
+      99,
+      99,
+      99,
+      99
+    ],
+    "failedInRepeats": {
+      "flipping any byte of the last record only drops that record": 5,
+      "zero bytes after the last record are dropped": 5,
+      "random garbage after the last record is dropped": 5,
+      "a torn tail is removed from the file by the next writer": 5,
+      "damage with committed records after it is refused, not discarded": 5,
+      "compaction waits out a reader that has the log open": 5,
+      "a cancelled job is pruned once past retention": 5
+    }
+  },
+  "opencode": {
+    "scores": [
+      105,
+      105,
+      105,
+      105,
+      105
+    ],
+    "failedInRepeats": {
+      "compaction waits out a reader that has the log open": 5
+    }
+  },
+  "codex": {
+    "scores": [
+      101,
+      101,
+      101,
+      101,
+      101
+    ],
+    "failedInRepeats": {
+      "flipping any byte of the last record only drops that record": 5,
+      "random garbage after the last record is dropped": 5,
+      "damage with committed records after it is refused, not discarded": 5,
+      "a compaction blocked for too long fails cleanly and the queue keeps working": 5,
+      "a cancelled job is pruned once past retention": 5
+    }
+  }
+}

@@ -1,0 +1,850 @@
+TAP version 13
+# Subtest: schedule: the 31st anchor returns to month ends through a common year
+ok 1 - schedule: the 31st anchor returns to month ends through a common year
+  ---
+  duration_ms: 3.3314
+  type: 'test'
+  ...
+# Subtest: schedule: the 31st anchor returns to month ends through a leap year
+ok 2 - schedule: the 31st anchor returns to month ends through a leap year
+  ---
+  duration_ms: 0.9815
+  type: 'test'
+  ...
+# Subtest: schedule: a 30th anchor recovers after February
+ok 3 - schedule: a 30th anchor recovers after February
+  ---
+  duration_ms: 0.3896
+  type: 'test'
+  ...
+# Subtest: schedule: a 29th anchor recovers after a common-year February
+ok 4 - schedule: a 29th anchor recovers after a common-year February
+  ---
+  duration_ms: 0.1829
+  type: 'test'
+  ...
+# Subtest: schedule: an annual plan on 29 February returns to it in the next leap year
+ok 5 - schedule: an annual plan on 29 February returns to it in the next leap year
+  ---
+  duration_ms: 0.6999
+  type: 'test'
+  ...
+# Subtest: schedule: a quarterly month-end anchor keeps its day
+ok 6 - schedule: a quarterly month-end anchor keeps its day
+  ---
+  duration_ms: 1.8022
+  type: 'test'
+  ...
+# Subtest: schedule: century years follow the Gregorian leap rule
+ok 7 - schedule: century years follow the Gregorian leap rule
+  ---
+  duration_ms: 0.9099
+  type: 'test'
+  ...
+# Subtest: schedule: periodContaining finds the right period after a short month
+ok 8 - schedule: periodContaining finds the right period after a short month
+  ---
+  duration_ms: 0.4797
+  type: 'test'
+  ...
+# Subtest: schedule: periodAt agrees with the anchor rule far from the anchor
+ok 9 - schedule: periodAt agrees with the anchor rule far from the anchor
+  ---
+  duration_ms: 0.2089
+  type: 'test'
+  ...
+# Subtest: schedule: renewalsAfter keeps the billing day
+ok 10 - schedule: renewalsAfter keeps the billing day
+  ---
+  duration_ms: 0.7747
+  type: 'test'
+  ...
+# Subtest: schedule: seeded anchors and intervals all follow the anchor rule
+ok 11 - schedule: seeded anchors and intervals all follow the anchor rule
+  ---
+  duration_ms: 23.7234
+  type: 'test'
+  ...
+# Subtest: schedule: seeded lookups agree with the listed periods
+ok 12 - schedule: seeded lookups agree with the listed periods
+  ---
+  duration_ms: 5.6069
+  type: 'test'
+  ...
+# Subtest: schedule: a renewing subscription keeps its billing day
+ok 13 - schedule: a renewing subscription keeps its billing day
+  ---
+  duration_ms: 3.489
+  type: 'test'
+  ...
+# Subtest: schedule: a renewing annual subscription returns to 29 February
+ok 14 - schedule: a renewing annual subscription returns to 29 February
+  ---
+  duration_ms: 0.843
+  type: 'test'
+  ...
+# Subtest: schedule: catching up on renewals keeps the billing day
+ok 15 - schedule: catching up on renewals keeps the billing day
+  ---
+  duration_ms: 0.7338
+  type: 'test'
+  ...
+# Subtest: schedule: the forecast and the book agree on the next renewal
+ok 16 - schedule: the forecast and the book agree on the next renewal
+  ---
+  duration_ms: 1.9036
+  type: 'test'
+  ...
+# Subtest: proration: the worked example from the docs comes out exactly
+ok 17 - proration: the worked example from the docs comes out exactly
+  ---
+  duration_ms: 0.2774
+  type: 'test'
+  ...
+# Subtest: proration: a change on the first day swaps the whole period
+ok 18 - proration: a change on the first day swaps the whole period
+  ---
+  duration_ms: 0.3981
+  type: 'test'
+  ...
+# Subtest: proration: a change on the last day still counts that day
+ok 19 - proration: a change on the last day still counts that day
+  ---
+  duration_ms: 0.0863
+  type: 'test'
+  ...
+# Subtest: proration: a period shortened by a month end uses its real length
+ok 20 - proration: a period shortened by a month end uses its real length
+  ---
+  duration_ms: 0.434
+  type: 'test'
+  ...
+# Subtest: proration: a period after a short month uses its real length
+ok 21 - proration: a period after a short month uses its real length
+  ---
+  duration_ms: 1.481
+  type: 'test'
+  ...
+# Subtest: proration: an annual period containing 29 February has 366 days
+ok 22 - proration: an annual period containing 29 February has 366 days
+  ---
+  duration_ms: 0.1232
+  type: 'test'
+  ...
+# Subtest: proration: an annual period without 29 February has 365 days
+ok 23 - proration: an annual period without 29 February has 365 days
+  ---
+  duration_ms: 0.9105
+  type: 'test'
+  ...
+# Subtest: proration: an exact half rounds to even
+ok 24 - proration: an exact half rounds to even
+  ---
+  duration_ms: 0.1556
+  type: 'test'
+  ...
+# Subtest: proration: seeded change dates count days left inclusively
+ok 25 - proration: seeded change dates count days left inclusively
+  ---
+  duration_ms: 6.9298
+  type: 'test'
+  ...
+# Subtest: currency: three-decimal text parses to thousandths
+ok 26 - currency: three-decimal text parses to thousandths
+  ---
+  duration_ms: 1.5168
+  type: 'test'
+  ...
+# Subtest: currency: short decimals pad to the currency precision
+ok 27 - currency: short decimals pad to the currency precision
+  ---
+  duration_ms: 0.2507
+  type: 'test'
+  ...
+# Subtest: currency: zero-decimal currencies parse whole
+ok 28 - currency: zero-decimal currencies parse whole
+  ---
+  duration_ms: 0.6345
+  type: 'test'
+  ...
+# Subtest: currency: decimals beyond the currency precision are rejected
+ok 29 - currency: decimals beyond the currency precision are rejected
+  ---
+  duration_ms: 0.5186
+  type: 'test'
+  ...
+# Subtest: currency: three-decimal amounts format with three decimals
+ok 30 - currency: three-decimal amounts format with three decimals
+  ---
+  duration_ms: 0.2491
+  type: 'test'
+  ...
+# Subtest: currency: zero-decimal amounts format without a decimal point
+ok 31 - currency: zero-decimal amounts format without a decimal point
+  ---
+  duration_ms: 0.4299
+  type: 'test'
+  ...
+# Subtest: currency: written amounts have exactly the currency decimals
+ok 32 - currency: written amounts have exactly the currency decimals
+  ---
+  duration_ms: 2.7129
+  type: 'test'
+  ...
+# Subtest: currency: parsing what was written gives the same amount in every currency
+ok 33 - currency: parsing what was written gives the same amount in every currency
+  ---
+  duration_ms: 3.8997
+  type: 'test'
+  ...
+# Subtest: currency: plan prices are stored in the right minor unit
+ok 34 - currency: plan prices are stored in the right minor unit
+  ---
+  duration_ms: 0.3515
+  type: 'test'
+  ...
+# Subtest: currency: statement columns in a zero-decimal currency are whole numbers
+ok 35 - currency: statement columns in a zero-decimal currency are whole numbers
+  ---
+  duration_ms: 0.8837
+  type: 'test'
+  ...
+# Subtest: currency: statement columns in a three-decimal currency have three decimals
+ok 36 - currency: statement columns in a three-decimal currency have three decimals
+  ---
+  duration_ms: 0.1937
+  type: 'test'
+  ...
+# Subtest: currency: statement summary lines follow the currency
+ok 37 - currency: statement summary lines follow the currency
+  ---
+  duration_ms: 0.6552
+  type: 'test'
+  ...
+# Subtest: currency: credit note rows on a statement follow the currency
+ok 38 - currency: credit note rows on a statement follow the currency
+  ---
+  duration_ms: 2.0183
+  type: 'test'
+  ...
+# Subtest: currency: credit amounts given as text use the invoice currency
+ok 39 - currency: credit amounts given as text use the invoice currency
+  ---
+  duration_ms: 0.2753
+  type: 'test'
+  ...
+# Subtest: currency: the invoice export writes amounts in the currency decimals
+ok 40 - currency: the invoice export writes amounts in the currency decimals
+  ---
+  duration_ms: 0.5297
+  type: 'test'
+  ...
+# Subtest: currency: the credit note export writes amounts in the currency decimals
+ok 41 - currency: the credit note export writes amounts in the currency decimals
+  ---
+  duration_ms: 0.27
+  type: 'test'
+  ...
+# Subtest: currency: a subscription bills in the right minor unit
+ok 42 - currency: a subscription bills in the right minor unit
+  ---
+  duration_ms: 0.8051
+  type: 'test'
+  ...
+# Subtest: allocation: equal weights give spare units to the earliest lines
+ok 43 - allocation: equal weights give spare units to the earliest lines
+  ---
+  duration_ms: 1.3547
+  type: 'test'
+  ...
+# Subtest: allocation: a zero-weight line gets nothing wherever it sits
+ok 44 - allocation: a zero-weight line gets nothing wherever it sits
+  ---
+  duration_ms: 0.3013
+  type: 'test'
+  ...
+# Subtest: allocation: a negative amount mirrors the positive one
+ok 45 - allocation: a negative amount mirrors the positive one
+  ---
+  duration_ms: 0.4716
+  type: 'test'
+  ...
+# Subtest: allocation: seeded splits sum exactly and stay within one unit
+ok 46 - allocation: seeded splits sum exactly and stay within one unit
+  ---
+  duration_ms: 18.9013
+  type: 'test'
+  ...
+# Subtest: allocation: seeded zero weights always get zero
+ok 47 - allocation: seeded zero weights always get zero
+  ---
+  duration_ms: 7.1598
+  type: 'test'
+  ...
+# Subtest: allocation: seeded negative amounts mirror positive ones
+ok 48 - allocation: seeded negative amounts mirror positive ones
+  ---
+  duration_ms: 6.0436
+  type: 'test'
+  ...
+# Subtest: allocation: a discount leaves free lines and credit lines alone
+ok 49 - allocation: a discount leaves free lines and credit lines alone
+  ---
+  duration_ms: 1.7328
+  type: 'test'
+  ...
+# Subtest: allocation: seeded invoice discounts stay proportional
+ok 50 - allocation: seeded invoice discounts stay proportional
+  ---
+  duration_ms: 10.9609
+  type: 'test'
+  ...
+# Subtest: allocation: instalments stay level
+ok 51 - allocation: instalments stay level
+  ---
+  duration_ms: 0.5
+  type: 'test'
+  ...
+# Subtest: tax: the due amount is on the group, not the sum of rounded lines
+ok 52 - tax: the due amount is on the group, not the sum of rounded lines
+  ---
+  duration_ms: 1.5055
+  type: 'test'
+  ...
+# Subtest: tax: rounding up on lines cannot inflate the group
+ok 53 - tax: rounding up on lines cannot inflate the group
+  ---
+  duration_ms: 0.2183
+  type: 'test'
+  ...
+# Subtest: tax: rate groups are worked out independently
+ok 54 - tax: rate groups are worked out independently
+  ---
+  duration_ms: 0.5436
+  type: 'test'
+  ...
+# Subtest: tax: an invoice mixing a credit and a charge adds up
+ok 55 - tax: an invoice mixing a credit and a charge adds up
+  ---
+  duration_ms: 1.5722
+  type: 'test'
+  ...
+# Subtest: tax: a credit and a charge that cancel out owe no tax and stay readable
+ok 56 - tax: a credit and a charge that cancel out owe no tax and stay readable
+  ---
+  duration_ms: 0.2054
+  type: 'test'
+  ...
+# Subtest: tax: a net credit invoice adds up
+ok 57 - tax: a net credit invoice adds up
+  ---
+  duration_ms: 0.3007
+  type: 'test'
+  ...
+# Subtest: tax: lines add up after a discount has been split
+ok 58 - tax: lines add up after a discount has been split
+  ---
+  duration_ms: 0.1342
+  type: 'test'
+  ...
+# Subtest: tax: seeded invoices with charges only add up
+ok 59 - tax: seeded invoices with charges only add up
+  ---
+  duration_ms: 13.7326
+  type: 'test'
+  ...
+# Subtest: tax: seeded invoices mixing credits and charges add up
+ok 60 - tax: seeded invoices mixing credits and charges add up
+  ---
+  duration_ms: 13.8378
+  type: 'test'
+  ...
+# Subtest: tax: seeded groups that cancel to zero add up
+ok 61 - tax: seeded groups that cancel to zero add up
+  ---
+  duration_ms: 2.8703
+  type: 'test'
+  ...
+# Subtest: credit: a full credit gives back the discounted net, not the list price
+ok 62 - credit: a full credit gives back the discounted net, not the list price
+  ---
+  duration_ms: 0.4467
+  type: 'test'
+  ...
+# Subtest: credit: an open-ended line entry credits what is left of its net
+ok 63 - credit: an open-ended line entry credits what is left of its net
+  ---
+  duration_ms: 0.2154
+  type: 'test'
+  ...
+# Subtest: credit: a single note cannot exceed the discounted net
+ok 64 - credit: a single note cannot exceed the discounted net
+  ---
+  duration_ms: 0.1784
+  type: 'test'
+  ...
+# Subtest: credit: notes together cannot exceed the net
+ok 65 - credit: notes together cannot exceed the net
+  ---
+  duration_ms: 0.4907
+  type: 'test'
+  ...
+# Subtest: credit: one note naming a line twice cannot exceed the net
+ok 66 - credit: one note naming a line twice cannot exceed the net
+  ---
+  duration_ms: 1.38
+  type: 'test'
+  ...
+# Subtest: credit: remainingCreditable tracks net after discounts and prior notes
+ok 67 - credit: remainingCreditable tracks net after discounts and prior notes
+  ---
+  duration_ms: 0.1729
+  type: 'test'
+  ...
+# Subtest: credit: a full credit gives back line tax that was rounded by the group
+ok 68 - credit: a full credit gives back line tax that was rounded by the group
+  ---
+  duration_ms: 0.4095
+  type: 'test'
+  ...
+# Subtest: credit: refunds in single units end on exactly the tax charged
+ok 69 - credit: refunds in single units end on exactly the tax charged
+  ---
+  duration_ms: 7.4963
+  type: 'test'
+  ...
+# Subtest: credit: a staged refund finishes clean through creditInvoiceInFull
+ok 70 - credit: a staged refund finishes clean through creditInvoiceInFull
+  ---
+  duration_ms: 0.6455
+  type: 'test'
+  ...
+# Subtest: credit: creditInvoiceInFull leaves negative lines alone
+ok 71 - credit: creditInvoiceInFull leaves negative lines alone
+  ---
+  duration_ms: 1.8039
+  type: 'test'
+  ...
+# Subtest: credit: seeded staged refunds stay near the share and finish exact
+ok 72 - credit: seeded staged refunds stay near the share and finish exact
+  ---
+  duration_ms: 38.2058
+  type: 'test'
+  ...
+# Subtest: change: a customer on a coupon gets back the discounted price
+ok 73 - change: a customer on a coupon gets back the discounted price
+  ---
+  duration_ms: 1.95
+  type: 'test'
+  ...
+# Subtest: change: a one-off discount limits what comes back
+ok 74 - change: a one-off discount limits what comes back
+  ---
+  duration_ms: 0.7759
+  type: 'test'
+  ...
+# Subtest: change: a discount on a renewal limits what comes back
+ok 75 - change: a discount on a renewal limits what comes back
+  ---
+  duration_ms: 0.3499
+  type: 'test'
+  ...
+# Subtest: change: a second change gives back what the first one charged
+ok 76 - change: a second change gives back what the first one charged
+  ---
+  duration_ms: 0.5903
+  type: 'test'
+  ...
+# Subtest: change: two changes on one day give back the whole of the first charge
+ok 77 - change: two changes on one day give back the whole of the first charge
+  ---
+  duration_ms: 0.3446
+  type: 'test'
+  ...
+# Subtest: change: cancelling gives back the discounted price
+ok 78 - change: cancelling gives back the discounted price
+  ---
+  duration_ms: 0.4835
+  type: 'test'
+  ...
+# Subtest: change: a change after a renewal draws on the renewal, not on earlier charges
+ok 79 - change: a change after a renewal draws on the renewal, not on earlier charges
+  ---
+  duration_ms: 0.331
+  type: 'test'
+  ...
+# Subtest: change: seeded chains of changes never give back more than was charged
+ok 80 - change: seeded chains of changes never give back more than was charged
+  ---
+  duration_ms: 9.6067
+  type: 'test'
+  ...
+# Subtest: coupon: a mid-period change does not use up a period
+ok 81 - coupon: a mid-period change does not use up a period
+  ---
+  duration_ms: 0.2685
+  type: 'test'
+  ...
+# Subtest: coupon: repeated changes in one period use up nothing
+ok 82 - coupon: repeated changes in one period use up nothing
+  ---
+  duration_ms: 0.4721
+  type: 'test'
+  ...
+# Subtest: coupon: a change in the last covered period is discounted
+ok 83 - coupon: a change in the last covered period is discounted
+  ---
+  duration_ms: 0.2043
+  type: 'test'
+  ...
+# Subtest: coupon: a change after the coupon has run out is not discounted
+ok 84 - coupon: a change after the coupon has run out is not discounted
+  ---
+  duration_ms: 0.3675
+  type: 'test'
+  ...
+# Subtest: account: credit does not change what an invoice charges or its tax
+ok 85 - account: credit does not change what an invoice charges or its tax
+  ---
+  duration_ms: 0.2359
+  type: 'test'
+  ...
+# Subtest: account: credit reduces the amount to pay
+ok 86 - account: credit reduces the amount to pay
+  ---
+  duration_ms: 0.1509
+  type: 'test'
+  ...
+# Subtest: account: only as much credit as the invoice needs is used
+ok 87 - account: only as much credit as the invoice needs is used
+  ---
+  duration_ms: 0.185
+  type: 'test'
+  ...
+# Subtest: account: the open balance is what is left after the credit
+ok 88 - account: the open balance is what is left after the credit
+  ---
+  duration_ms: 0.3606
+  type: 'test'
+  ...
+# Subtest: account: the statement and the reports agree on the numbers
+ok 89 - account: the statement and the reports agree on the numbers
+  ---
+  duration_ms: 1.2865
+  type: 'test'
+  ...
+# Subtest: account: an invoice settled from credit leaves a balanced journal
+ok 90 - account: an invoice settled from credit leaves a balanced journal
+  ---
+  duration_ms: 11.7107
+  type: 'test'
+  ...
+# Subtest: account: a later change gives back what the line charged, credit or no credit
+ok 91 - account: a later change gives back what the line charged, credit or no credit
+  ---
+  duration_ms: 0.2579
+  type: 'test'
+  ...
+# Subtest: account: a net credit invoice goes onto the account and leaves nothing to pay
+ok 92 - account: a net credit invoice goes onto the account and leaves nothing to pay
+  ---
+  duration_ms: 0.2173
+  type: 'test'
+  ...
+# Subtest: refund: a paid invoice settled partly from credit goes back both ways
+ok 93 - refund: a paid invoice settled partly from credit goes back both ways
+  ---
+  duration_ms: 0.4168
+  type: 'test'
+  ...
+# Subtest: refund: an unpaid invoice gets no cash back
+ok 94 - refund: an unpaid invoice gets no cash back
+  ---
+  duration_ms: 0.2586
+  type: 'test'
+  ...
+# Subtest: refund: a part-paid invoice clears the balance, then the cash, then the account
+ok 95 - refund: a part-paid invoice clears the balance, then the cash, then the account
+  ---
+  duration_ms: 0.2635
+  type: 'test'
+  ...
+# Subtest: refund: staged notes end up in the same place
+ok 96 - refund: staged notes end up in the same place
+  ---
+  duration_ms: 0.4986
+  type: 'test'
+  ...
+# Subtest: refund: a charge covered by an earlier credit goes back to the account
+ok 97 - refund: a charge covered by an earlier credit goes back to the account
+  ---
+  duration_ms: 0.2515
+  type: 'test'
+  ...
+# Subtest: refund: seeded invoices never refund more cash than was received
+ok 98 - refund: seeded invoices never refund more cash than was received
+  ---
+  duration_ms: 14.4401
+  type: 'test'
+  ...
+# Subtest: rates: unused time goes back at the rate it was charged at
+ok 99 - rates: unused time goes back at the rate it was charged at
+  ---
+  duration_ms: 0.2831
+  type: 'test'
+  ...
+# Subtest: rates: credit and charge at different rates are separate tax groups
+ok 100 - rates: credit and charge at different rates are separate tax groups
+  ---
+  duration_ms: 0.2572
+  type: 'test'
+  ...
+# Subtest: rates: a falling rate gives back the higher tax that was charged
+ok 101 - rates: a falling rate gives back the higher tax that was charged
+  ---
+  duration_ms: 0.1724
+  type: 'test'
+  ...
+# Subtest: rates: cancelling gives back tax at the rate charged
+ok 102 - rates: cancelling gives back tax at the rate charged
+  ---
+  duration_ms: 0.2174
+  type: 'test'
+  ...
+# Subtest: rates: a second change goes back at the rate of the first change
+ok 103 - rates: a second change goes back at the rate of the first change
+  ---
+  duration_ms: 0.2503
+  type: 'test'
+  ...
+# Subtest: rates: the tax report shows each side at its own rate
+ok 104 - rates: the tax report shows each side at its own rate
+  ---
+  duration_ms: 0.2404
+  type: 'test'
+  ...
+# Subtest: scheduled: new seats survive an immediate plan change
+ok 105 - scheduled: new seats survive an immediate plan change
+  ---
+  duration_ms: 0.2899
+  type: 'test'
+  ...
+# Subtest: scheduled: a new plan survives an immediate seat change
+ok 106 - scheduled: a new plan survives an immediate seat change
+  ---
+  duration_ms: 0.1945
+  type: 'test'
+  ...
+# Subtest: scheduled: a cancellation survives an immediate change
+ok 107 - scheduled: a cancellation survives an immediate change
+  ---
+  duration_ms: 0.1709
+  type: 'test'
+  ...
+# Subtest: scheduled: the forecast still sees what is scheduled after a change
+ok 108 - scheduled: the forecast still sees what is scheduled after a change
+  ---
+  duration_ms: 0.1792
+  type: 'test'
+  ...
+# Subtest: scheduled: several changes in a row leave the schedule in place
+ok 109 - scheduled: several changes in a row leave the schedule in place
+  ---
+  duration_ms: 0.2601
+  type: 'test'
+  ...
+# Subtest: shared: a credit note only reaches what a plan change left
+ok 110 - shared: a credit note only reaches what a plan change left
+  ---
+  duration_ms: 0.2834
+  type: 'test'
+  ...
+# Subtest: shared: what is left to credit counts what a plan change gave back
+ok 111 - shared: what is left to credit counts what a plan change gave back
+  ---
+  duration_ms: 0.2115
+  type: 'test'
+  ...
+# Subtest: shared: a credit note cannot take more than a plan change left
+ok 112 - shared: a credit note cannot take more than a plan change left
+  ---
+  duration_ms: 0.3227
+  type: 'test'
+  ...
+# Subtest: shared: a credit note only reaches what a cancellation left
+ok 113 - shared: a credit note only reaches what a cancellation left
+  ---
+  duration_ms: 0.1984
+  type: 'test'
+  ...
+# Subtest: shared: nothing more comes back for time already refunded in full
+ok 114 - shared: nothing more comes back for time already refunded in full
+  ---
+  duration_ms: 0.2099
+  type: 'test'
+  ...
+# Subtest: shared: a cancellation after a full refund gives nothing back
+ok 115 - shared: a cancellation after a full refund gives nothing back
+  ---
+  duration_ms: 0.1792
+  type: 'test'
+  ...
+# Subtest: shared: a change after a partial refund stays inside what is left
+ok 116 - shared: a change after a partial refund stays inside what is left
+  ---
+  duration_ms: 0.2034
+  type: 'test'
+  ...
+# Subtest: shared: tax on a charge goes back in full across a change and a note
+ok 117 - shared: tax on a charge goes back in full across a change and a note
+  ---
+  duration_ms: 0.5825
+  type: 'test'
+  ...
+# Subtest: shared: seeded mixes of changes and notes never give back more than a charge
+ok 118 - shared: seeded mixes of changes and notes never give back more than a charge
+  ---
+  duration_ms: 12.4755
+  type: 'test'
+  ...
+# Subtest: reports: revenue in one currency ignores credit notes in another
+ok 119 - reports: revenue in one currency ignores credit notes in another
+  ---
+  duration_ms: 0.389
+  type: 'test'
+  ...
+# Subtest: reports: the tax return in one currency ignores credit notes in another
+ok 120 - reports: the tax return in one currency ignores credit notes in another
+  ---
+  duration_ms: 0.2599
+  type: 'test'
+  ...
+# Subtest: reports: each currency has its own revenue, for any pair of currencies
+ok 121 - reports: each currency has its own revenue, for any pair of currencies
+  ---
+  duration_ms: 0.3075
+  type: 'test'
+  ...
+# Subtest: reports: each currency has its own tax return, for any pair of currencies
+ok 122 - reports: each currency has its own tax return, for any pair of currencies
+  ---
+  duration_ms: 0.2294
+  type: 'test'
+  ...
+# Subtest: sequences: long runs in USD with tax hold together
+ok 123 - sequences: long runs in USD with tax hold together
+  ---
+  duration_ms: 35.4216
+  type: 'test'
+  ...
+# Subtest: sequences: long runs on a month-end anchor hold together
+ok 124 - sequences: long runs on a month-end anchor hold together
+  ---
+  duration_ms: 33.2763
+  type: 'test'
+  ...
+# Subtest: sequences: long runs with a coupon hold together
+ok 125 - sequences: long runs with a coupon hold together
+  ---
+  duration_ms: 28.177
+  type: 'test'
+  ...
+# Subtest: sequences: long runs across a tax rate change hold together
+ok 126 - sequences: long runs across a tax rate change hold together
+  ---
+  duration_ms: 30.4535
+  type: 'test'
+  ...
+# Subtest: sequences: long runs in a three-decimal currency hold together
+ok 127 - sequences: long runs in a three-decimal currency hold together
+  ---
+  duration_ms: 25.948
+  type: 'test'
+  ...
+# Subtest: sequences: long runs in a zero-decimal currency hold together
+ok 128 - sequences: long runs in a zero-decimal currency hold together
+  ---
+  duration_ms: 28.523
+  type: 'test'
+  ...
+# Subtest: sequences: long runs on annual billing hold together
+ok 129 - sequences: long runs on annual billing hold together
+  ---
+  duration_ms: 19.6517
+  type: 'test'
+  ...
+# Subtest: sequence: change, partial credit, renewal, further change, then a renewal paid from credit
+ok 130 - sequence: change, partial credit, renewal, further change, then a renewal paid from credit
+  ---
+  duration_ms: 0.4453
+  type: 'test'
+  ...
+# Subtest: sequence: a scheduled downgrade after a discounted change and a refund
+ok 131 - sequence: a scheduled downgrade after a discounted change and a refund
+  ---
+  duration_ms: 0.2682
+  type: 'test'
+  ...
+# Subtest: end to end: a month-end customer upgrades after a short month
+ok 132 - end to end: a month-end customer upgrades after a short month
+  ---
+  duration_ms: 0.1983
+  type: 'test'
+  ...
+# Subtest: end to end: a Kuwaiti customer upgrades on a month-end plan
+ok 133 - end to end: a Kuwaiti customer upgrades on a month-end plan
+  ---
+  duration_ms: 0.2198
+  type: 'test'
+  ...
+# Subtest: end to end: an annual yen customer anchored on a leap day upgrades
+ok 134 - end to end: an annual yen customer anchored on a leap day upgrades
+  ---
+  duration_ms: 0.215
+  type: 'test'
+  ...
+# Subtest: end to end: a seat increase on the first day of a period
+ok 135 - end to end: a seat increase on the first day of a period
+  ---
+  duration_ms: 0.1801
+  type: 'test'
+  ...
+# Subtest: end to end: a same-price swap on a taxed plan shows nothing owed
+ok 136 - end to end: a same-price swap on a taxed plan shows nothing owed
+  ---
+  duration_ms: 0.279
+  type: 'test'
+  ...
+# Subtest: end to end: a discounted Kuwaiti renewal credited in full owes nothing
+ok 137 - end to end: a discounted Kuwaiti renewal credited in full owes nothing
+  ---
+  duration_ms: 0.3133
+  type: 'test'
+  ...
+# Subtest: end to end: a staged yen refund finishes clean on the statement
+ok 138 - end to end: a staged yen refund finishes clean on the statement
+  ---
+  duration_ms: 0.302
+  type: 'test'
+  ...
+# Subtest: end to end: a Kuwaiti invoice paid partly from credit reads correctly
+ok 139 - end to end: a Kuwaiti invoice paid partly from credit reads correctly
+  ---
+  duration_ms: 0.2597
+  type: 'test'
+  ...
+# Subtest: docs: the rounding page no longer gives half-up as the default
+ok 140 - docs: the rounding page no longer gives half-up as the default
+  ---
+  duration_ms: 0.2109
+  type: 'test'
+  ...
+1..140
+# tests 140
+# suites 0
+# pass 140
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 741.9878

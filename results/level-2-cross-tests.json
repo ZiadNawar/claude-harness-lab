@@ -1,0 +1,140 @@
+{
+  "matrix": {
+    "claude": {
+      "claude": {
+        "pass": 12,
+        "fail": 0,
+        "failing": []
+      },
+      "opencode": {
+        "pass": 13,
+        "fail": 0,
+        "failing": []
+      },
+      "codex": {
+        "pass": 7,
+        "fail": 0,
+        "failing": []
+      }
+    },
+    "opencode": {
+      "claude": {
+        "pass": 11,
+        "fail": 1,
+        "failing": [
+          "credit beyond the cash received goes to the account"
+        ]
+      },
+      "opencode": {
+        "pass": 13,
+        "fail": 0,
+        "failing": []
+      },
+      "codex": {
+        "pass": 7,
+        "fail": 0,
+        "failing": []
+      }
+    },
+    "codex": {
+      "claude": {
+        "pass": 11,
+        "fail": 1,
+        "failing": [
+          "credit beyond the cash received goes to the account"
+        ]
+      },
+      "opencode": {
+        "pass": 13,
+        "fail": 0,
+        "failing": []
+      },
+      "codex": {
+        "pass": 7,
+        "fail": 0,
+        "failing": []
+      }
+    }
+  },
+  "diffs": {
+    "claude": {
+      "added": 277,
+      "removed": 132,
+      "trackedFilesChanged": [
+        "CHANGELOG.md",
+        "docs/rounding.md",
+        "src/book.mjs",
+        "src/core/money.mjs",
+        "src/invoicing/allocation.mjs",
+        "src/invoicing/pipeline.mjs",
+        "src/ledger/balances.mjs",
+        "src/ledger/credit-notes.mjs",
+        "src/ledger/settlement.mjs",
+        "src/reporting/export.mjs",
+        "src/reporting/revenue.mjs",
+        "src/reporting/statement.mjs",
+        "src/reporting/tax-report.mjs",
+        "src/schedule/periods.mjs",
+        "src/subscriptions/plan-change.mjs",
+        "src/subscriptions/proration.mjs",
+        "src/subscriptions/renewal.mjs",
+        "src/subscriptions/segments.mjs",
+        "src/tax/calculate.mjs"
+      ]
+    },
+    "opencode": {
+      "added": 279,
+      "removed": 132,
+      "trackedFilesChanged": [
+        "CHANGELOG.md",
+        "docs/proration.md",
+        "docs/rounding.md",
+        "package.json",
+        "src/book.mjs",
+        "src/core/money.mjs",
+        "src/invoicing/allocation.mjs",
+        "src/invoicing/pipeline.mjs",
+        "src/ledger/balances.mjs",
+        "src/ledger/credit-notes.mjs",
+        "src/ledger/settlement.mjs",
+        "src/reporting/export.mjs",
+        "src/reporting/revenue.mjs",
+        "src/reporting/statement.mjs",
+        "src/reporting/tax-report.mjs",
+        "src/schedule/periods.mjs",
+        "src/subscriptions/plan-change.mjs",
+        "src/subscriptions/proration.mjs",
+        "src/subscriptions/renewal.mjs",
+        "src/subscriptions/segments.mjs",
+        "src/tax/calculate.mjs"
+      ]
+    },
+    "codex": {
+      "added": 225,
+      "removed": 120,
+      "trackedFilesChanged": [
+        "CHANGELOG.md",
+        "docs/proration.md",
+        "docs/rounding.md",
+        "package.json",
+        "src/book.mjs",
+        "src/core/money.mjs",
+        "src/invoicing/allocation.mjs",
+        "src/invoicing/pipeline.mjs",
+        "src/ledger/balances.mjs",
+        "src/ledger/credit-notes.mjs",
+        "src/ledger/settlement.mjs",
+        "src/reporting/export.mjs",
+        "src/reporting/revenue.mjs",
+        "src/reporting/statement.mjs",
+        "src/reporting/tax-report.mjs",
+        "src/schedule/periods.mjs",
+        "src/subscriptions/plan-change.mjs",
+        "src/subscriptions/proration.mjs",
+        "src/subscriptions/renewal.mjs",
+        "src/subscriptions/segments.mjs",
+        "src/tax/calculate.mjs"
+      ]
+    }
+  }
+}

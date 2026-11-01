@@ -1,0 +1,200 @@
+{
+  "condition": "opencode",
+  "workspace": "C:\\invoice-work\\a882719a\\workspace",
+  "ending": {
+    "reason": "succeeded",
+    "isError": false
+  },
+  "steps": 86,
+  "toolCalls": 53,
+  "toolsUsed": {
+    "shell": 41,
+    "grep": 1,
+    "edit": 8,
+    "write": 3
+  },
+  "said": 4,
+  "reasoning": {
+    "blocks": 29,
+    "withVisibleText": 29
+  },
+  "requests": 44,
+  "peakContextTokens": 128278,
+  "outputCharsReturnedToModel": 184155,
+  "commands": 41,
+  "testRuns": [
+    {
+      "seq": 9,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 11,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 13,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 14,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 69,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 72,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 73,
+      "exit": 0,
+      "pass": 111,
+      "fail": 0
+    },
+    {
+      "seq": 84,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 85,
+      "exit": 0,
+      "pass": 124,
+      "fail": 0
+    }
+  ],
+  "blocked": [],
+  "filesReadThroughATool": [],
+  "filesEditedThroughATool": [
+    "src/core/money.mjs",
+    "src/schedule/periods.mjs",
+    "src/tax/calculate.mjs",
+    "src/ledger/settlement.mjs",
+    "src/reporting/revenue.mjs",
+    "docs/proration.md",
+    "test/regression-cases.mjs"
+  ],
+  "filesNamedInShellCommands": [
+    ".",
+    "package.json",
+    "CHANGELOG.md",
+    "README.md",
+    "src/book.mjs",
+    "src/index.mjs",
+    "test/calendar-cases.mjs",
+    "test/money-cases.mjs",
+    "test/support/world.mjs",
+    "test/book-cases.mjs",
+    "test/credit-note-cases.mjs",
+    "test/invoice-cases.mjs",
+    "src/core/money.mjs",
+    "src/reporting/export.mjs",
+    "src/reporting/statement.mjs",
+    "src/schedule/periods.mjs",
+    "src/invoicing/allocation.mjs",
+    "src/tax/calculate.mjs",
+    "src/invoicing/pipeline.mjs",
+    "src/ledger/balances.mjs",
+    "src/ledger/credit-notes.mjs",
+    "src/subscriptions/proration.mjs",
+    "src/subscriptions/segments.mjs",
+    "src/subscriptions/plan-change.mjs",
+    "src/subscriptions/renewal.mjs",
+    "src/reporting/revenue.mjs",
+    "src/reporting/tax-report.mjs",
+    "C:/invoice-home/a882719a/Temp/opencode",
+    "C:/invoice-home/a882719a/Temp/opencode/check.mjs",
+    "C:/invoice",
+    "docs/proration.md",
+    "docs/rounding.md"
+  ],
+  "outsidePathsTouched": [
+    "C:/invoice-home/a882719a/Temp/opencode",
+    "C:/invoice-home/a882719a/Temp/opencode/check.mjs",
+    "C:/invoice"
+  ],
+  "disk": {
+    "inventoried": true,
+    "created": [
+      "test/regression-cases.mjs"
+    ],
+    "modified": [
+      "package.json",
+      "CHANGELOG.md",
+      "src/book.mjs",
+      "src/core/money.mjs",
+      "src/reporting/export.mjs",
+      "src/reporting/statement.mjs",
+      "src/schedule/periods.mjs",
+      "src/invoicing/allocation.mjs",
+      "src/tax/calculate.mjs",
+      "src/invoicing/pipeline.mjs",
+      "src/ledger/balances.mjs",
+      "src/ledger/settlement.mjs",
+      "src/ledger/credit-notes.mjs",
+      "src/subscriptions/proration.mjs",
+      "src/subscriptions/segments.mjs",
+      "src/subscriptions/plan-change.mjs",
+      "src/subscriptions/renewal.mjs",
+      "src/reporting/revenue.mjs",
+      "src/reporting/tax-report.mjs",
+      "docs/proration.md",
+      "docs/rounding.md"
+    ],
+    "deleted": [],
+    "filesBefore": 55,
+    "unchangedFiles": 34,
+    "unchangedAndReadOnDisk": 34,
+    "neverReadOnDisk": [],
+    "readOnDiskButNotThroughATool": [
+      ".gitignore",
+      "docs/principles.md",
+      "src/catalog/catalog.mjs",
+      "src/catalog/plans.mjs",
+      "src/core/currencies.mjs",
+      "src/core/dates.mjs",
+      "src/core/rounding.mjs",
+      "src/core/sequence.mjs",
+      "src/core/validate.mjs",
+      "src/customers/registry.mjs",
+      "src/invoicing/discounts.mjs",
+      "src/invoicing/invoice.mjs",
+      "src/ledger/account.mjs",
+      "src/ledger/dunning.mjs",
+      "src/ledger/instalments.mjs",
+      "src/ledger/journal.mjs",
+      "src/reporting/customer.mjs",
+      "src/reporting/forecast.mjs",
+      "src/reporting/fx.mjs",
+      "src/reporting/notices.mjs",
+      "src/subscriptions/record.mjs",
+      "src/subscriptions/scheduled-changes.mjs",
+      "src/subscriptions/timeline.mjs",
+      "src/tax/rates.mjs",
+      "test/catalog-cases.mjs",
+      "test/reporting-cases.mjs"
+    ]
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "I fixed the causes behind all seven complaints and the long-history reconciliation problems. `npm test` passes, with 13 new regression tests added. I also ran a randomised check of the principles. It covered line sums, tax per line, splits, staged refunds and journal balance across USD, JPY and KWD, and it passed. The project still has no dependencies, and the public exports in `src/index.mjs` are unchanged.\n\n## What was wrong and what I changed\n\n- **Renewal stuck on the 28th:** each renewal was stepped from the previous one, and February was hard-coded at 28 days. Renewals are now counted from the signup date, so a 31 January signup renews on 28/29 February, then 31 March. This is what CHANGELOG 0.2.1 already promised.\n- **Japan 100× too high, Kuwait failing:** money parsing and formatting assumed two decimals everywhere. They now use the currency table. Statements and CSV exports also divided by 100, and now use the currency's decimals too.\n- **Proration mismatch:** the code skipped the day of the change, but `docs/proration.md` says that day is billed at the new price. I kept the doc and changed the code. Your 16 February example now gives −14.00 and +28.00, as the doc says.\n- **Discounted customer refunded too much:** the credit was worked out from list price. It now uses what the customer actually paid after discount, never more than is left on that charge. It also goes back at the tax rate the original charge used. A mid-period change also no longer uses up a coupon period (CHANGELOG 0.5.2).\n- **Lines not adding up to the total:** splits used floating-point rounding, and tax was rounded line by line. Splits now use exact integer arithmetic. Tax is worked out once per rate and spread over the lines, each within one unit of its own tax. Negative amounts mirror positive ones.\n- **Tax query on part-paid invoice:** account credit was being taken off the line amounts before tax. It now settles the invoice the way a payment does, and shows in the invoice balance.\n- **Refunded invoices not ending at zero:**\n  - Credit notes now cap at what was charged after discount.\n  - They give back tax in step with the net, so a full credit returns exactly the tax charged.\n  - They count credits already given by plan-change invoices, so nothing is credited twice.\n  - Cash goes back only up to the cash received; the rest goes to the customer's account.\n- **Other billing-path bugs:**\n  - A plan change erased any scheduled change (CHANGELOG 0.7.0).\n  - A failed request used up an invoice number, leaving a gap.\n  - Revenue and tax reports mixed credit notes from other currencies.\n  - Deferred revenue ignored credit notes.\n\n## Docs changed\n\n- **`docs/rounding.md`:** it said the default is half-up, but the code has been half-even since 0.4.0 at finance's request. I fixed the doc and added a `half-even` row to the table. I also added a short section on how splits work.\n- **`docs/proration.md`:** I kept the day-of-change rule and the example. I added how credits work with discounts and which tax rate they use.\n- **`CHANGELOG.md` and `package.json`:** I added a 0.9.3 entry and bumped the version to match. `docs/principles.md` is unchanged.\n\n## What I was unsure about\n\n- **Plan-change credits and tax:** a credit line's tax comes from the invoice's per-rate calculation. So a full reversal through a plan change can differ by one minor unit from the original line's tax. I couldn't remove that without breaking the \"tax rounded once per rate\" rule.\n- **Deferred revenue:** I made credit notes reduce it proportionally. The spec doesn't say how, so finance should confirm.\n- **Changes dated before an earlier change:** a change dated before the previous change in the same period now throws an error. Before, it silently credited too much.\n- **Currency-code strictness:** `parseAmount` now rejects \"29.00\" for JPY instead of rounding it. That follows principle 1, but any feed that sends such values will start failing.\n- **Existing data:** I didn't touch stored invoices, so any already issued with the old drift or rounding stay as they are. Finance may want to review those separately."
+}

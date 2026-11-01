@@ -1,0 +1,6 @@
+seq,at,finishedAt,tool,command,exit,testPass,testFail,blockedBy,blockedMessage,outputChars
+"3","2026-10-30T22:44:24.930Z","2026-10-30T22:44:25.385Z","shell","git status --short; git log --oneline -5","0","","","","","23"
+"10","2026-10-30T22:44:29.247Z","2026-10-30T22:44:31.534Z","shell","npm test 2>&1","0","0","1","","","1365"
+"12","2026-10-30T22:44:33.421Z","2026-10-30T22:44:36.729Z","shell","npm install decimal.js 2>&1; npm test 2>&1 | Select-String -Pattern ""✖|✔|fail|pass|expected|actual|Error"" ","0","1","1","","","229"
+"20","2026-10-30T22:44:47.910Z","2026-10-30T22:44:49.610Z","shell","npm test 2>&1 | Select-String -Pattern ""✖|✔|ℹ (pass|fail)""; git status --short","0","","","","","76"
+"22","2026-10-30T22:44:51.545Z","2026-10-30T22:44:53.014Z","shell","npm test 2>&1 | Select-Object -First 20","0","2","0","","","233"

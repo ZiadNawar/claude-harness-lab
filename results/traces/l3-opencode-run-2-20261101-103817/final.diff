@@ -1,0 +1,1512 @@
+﻿ M CHANGELOG.md
+ M README.md
+ M docs/api.md
+ M docs/architecture.md
+ M docs/compaction.md
+ M docs/crash-testing.md
+ M docs/leases-and-retries.md
+ M docs/operations.md
+ M docs/rfc-007-exactly-once-completion.md
+ M docs/wal-format.md
+ M package.json
+ M scripts/stress.mjs
+ M src/cli.mjs
+ M src/compactor.mjs
+ M src/errors.mjs
+ M src/frame.mjs
+ M src/index.mjs
+ M src/inspect.mjs
+ M src/queue.mjs
+ M src/records.mjs
+ M src/retention.mjs
+ M src/snapshot.mjs
+ M src/state.mjs
+ M src/store.mjs
+ M src/wal.mjs
+ M src/worker/pool.mjs
+ M src/worker/runner.mjs
+ M test/helpers/tmp.mjs
+?? test/compaction-failure.mjs
+?? test/completion.mjs
+?? test/durability.mjs
+?? test/helpers/crash-child.mjs
+?? test/shared-queue.mjs
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index c3ab5e1..8210b23 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,24 @@
+ # Changelog
+ 
++## 0.5.0
++
++RFC 007: `complete()` returns a receipt; new `getResult()`, `completions()`, `reclaimWorker()`; the `release` record; worker pools reclaim dead workers at once; workers keep retrying to record a finished job.
++
++Fixes (see docs/guarantees.md):
++
++- A log with an unfinished write at its end no longer becomes unreadable after later writes: the tail is removed under the lock before anything is appended, and appends go to the end of the good data (G2, G3).
++- Damage elsewhere raises `CorruptLogError` and the file is left alone; a failed read no longer carries on from half a state (G4).
++- The whole log is read on open, not the first megabyte; records bigger than a read chunk work; records over the frame limit are refused before writing (G5).
++- Claims, reaps and idempotency-key checks are decided under the lock, so processes can no longer take the same job, expire a job that was just heartbeated or committed, or both create a key (G6, G10).
++- Tokens are checked on heartbeat, complete and fail; `requeueDead` no longer reissues tokens (G6, G8).
++- Heartbeats are written to the log so other processes' reapers see them (G7).
++- Retry due times come from the record, not the replaying process's clock (G9).
++- Snapshots keep attempts, tokens, priority and idempotency keys, including keys of pruned jobs (G9, G10, G11).
++- `complete` is synced before it returns (G1).
++- Compaction: leftover temp files are replaced, the temp file is synced before the rename, a briefly held log is waited out, other processes notice a new generation however big the new file is, and automatic compaction no longer rewrites a large state on every write (G11 to G14).
++- Log creation is durable before it takes its name (G2).
++- `walq tail` no longer holds the log open.
++
+ ## 0.4.2
+ 
+ - Throughput work for busy queues: less log growth and fewer syncs in the common paths.
+diff --git a/README.md b/README.md
+index 3fa1b90..e54bdf6 100644
+--- a/README.md
++++ b/README.md
+@@ -39,6 +39,7 @@ An export can also be `{ run, timeoutMs }`. A handler that outlasts its timeout
+ ## Features
+ 
+ - **Durable:** an acknowledged call has reached the disk.
++- **Exactly-once completion:** `complete()` returns a receipt, repeats are harmless, and a pool reclaims a dead worker's jobs at once ([RFC 007](docs/rfc-007-exactly-once-completion.md)).
+ - **Leases:** a claimed job belongs to one worker until its lease ends. Workers extend leases with heartbeats while they run.
+ - **Retries:** failed attempts retry with exponential backoff, then go dead. `requeueDead()` brings a dead job back.
+ - **Idempotency keys:** enqueuing twice with the same key returns the first job.
+diff --git a/docs/api.md b/docs/api.md
+index d7104ad..90ec2ea 100644
+--- a/docs/api.md
++++ b/docs/api.md
+@@ -23,9 +23,15 @@ Everything is exported from `src/index.mjs`. The names and shapes on this page a
+ 
+ **`claim(worker, { leaseMs, types })`** returns `{ id, type, payload, attempt, token, leaseUntil }` or `null`. Among due jobs, higher `priority` goes first, then the job due longest, then the oldest. `token` identifies this attempt.
+ 
+-**`heartbeat(id, token, { leaseMs })`** returns `{ leaseUntil }`. Throws `StaleLeaseError` if the lease is no longer yours.
++**`heartbeat(id, token, { leaseMs })`** returns `{ leaseUntil }`. Throws `StaleLeaseError` if the lease is no longer yours. The extension is written to the log, so every process sees it, including whichever one runs the reaper.
+ 
+-**`complete(id, token, result)`** records the result. Throws `StaleLeaseError` if the lease is no longer yours. RFC 007 changes what this returns.
++**`complete(id, token, result)`** commits the result and returns a receipt `{ id, outcome, token, result, completedAt, completionSeq }`. `outcome` is `committed` the first time and `already-committed` for a repeat with the same token (nothing is written, and the stored result is returned). Any other token throws `StaleLeaseError`; a pruned job throws `UnknownJobError`. The call returns once the record is on disk. See [RFC 007](rfc-007-exactly-once-completion.md).
++
++**`getResult(id)`** returns `{ id, status: 'done', result, token, attempts, completedAt, completionSeq }` for a finished job, `{ id, status }` for any other, and `null` for an unknown or pruned one.
++
++**`completions({ after, limit })`** returns the retained commits in commit order, `[{ seq, id, token, result, completedAt }]`, with `seq > after`. Numbers start at 1 and never repeat or go back, across restarts and compaction.
++
++**`reclaimWorker(workerId, { reason })`** gives up every lease held by a worker known to be dead, at once and with no backoff, and returns `[{ id, status }]` (`ready`, or `dead` when attempts have run out). The attempt counts, `reason` becomes `lastError`, and the old tokens are stale.
+ 
+ **`fail(id, token, error)`** returns `{ id, status, retryAt }`. The job goes back to `ready` with a backoff, or to `dead` when attempts run out.
+ 
+@@ -53,15 +59,17 @@ new WorkerPool({ dir, handlers, size, leaseMs, heartbeatMs, pollMs, reapMs, type
+ 
+ `handlers` is the path of a handlers module. `queue` is the options object for `openQueue` in the workers and the pool, so it must be JSON-serialisable. `env` adds environment variables for the workers. `types` limits which job types the pool's workers take.
+ 
++Worker ids are unique across pools and processes. When the pool sees a worker exit it reclaims that worker's leases at once (`reclaimWorker`) and starts a replacement, so a killed worker's job does not wait for its lease.
++
+ - `start()` starts the workers.
+ - `drain({ timeoutMs })` resolves when no job is `ready` or `leased`, and rejects when that takes too long.
+ - `stop()` stops the workers and waits for them to go.
+ 
+-The pool is an `EventEmitter`. `message` carries worker events (`kind` is one of `ready`, `job-started`, `job-completed`, `job-failed`, `job-fenced`, `worker-error`), `exit` fires when a worker exits, and `stderr` and `error-event` report problems.
++The pool is an `EventEmitter`. `message` carries worker events (`kind` is one of `ready`, `job-started`, `job-completed`, `job-failed`, `job-fenced`, `worker-error`). A worker that has finished a job keeps trying to record the outcome until it is recorded or the worker learns it was fenced (`job-fenced`), `exit` fires when a worker exits, and `stderr` and `error-event` report problems.
+ 
+ ## Errors
+ 
+-`WalqError` is the base class. `CorruptLogError` has an `offset`. Also `StaleLeaseError`, `UnknownJobError`, `LockTimeoutError`, `InvalidTransitionError`, `ConfigError`, `QueueClosedError`.
++`WalqError` is the base class. `CorruptLogError` has an `offset`. Also `StaleLeaseError`, `UnknownJobError`, `LockTimeoutError`, `InvalidTransitionError`, `ConfigError`, `QueueClosedError`, and `RecordTooLargeError` (a record would not fit in a 64 MiB frame; nothing was written).
+ 
+ ## Other exports
+ 
+diff --git a/docs/architecture.md b/docs/architecture.md
+index cfee40d..1b41806 100644
+--- a/docs/architecture.md
++++ b/docs/architecture.md
+@@ -20,7 +20,7 @@ Every process that opens a queue directory holds its own copy of the state, buil
+ 
+ 1. takes the lock (`lock.mjs`);
+ 2. reads whatever other processes appended since last time, and applies it (`Store.catchUp`);
+-3. decides, appends, and syncs;
++3. decides (always after the catch-up, under the lock), appends, and syncs;
+ 4. releases the lock.
+ 
+ Time spent holding the lock is short, because job handlers run outside it.
+@@ -52,4 +52,4 @@ All queue calls are synchronous. A call never interleaves with another call in t
+ 
+ ## Who runs the reaper
+ 
+-`WorkerPool` calls `reapExpired()` on a timer, in the parent process. Anyone may call it; it is safe to have several. Pools can share a queue directory, and so can processes that only enqueue.
++`WorkerPool` calls `reapExpired()` on a timer, in the parent process, and `reclaimWorker()` as soon as a worker exits. Anyone may call it; it is safe to have several. Pools can share a queue directory, and so can processes that only enqueue.
+diff --git a/docs/compaction.md b/docs/compaction.md
+index cb9fc73..3edfad3 100644
+--- a/docs/compaction.md
++++ b/docs/compaction.md
+@@ -5,7 +5,7 @@ The log only grows, so from time to time it's replaced by a shorter one that say
+ ## When
+ 
+ - `compact()` runs it on request.
+-- After any write, automatically, when the log has passed `compactAfterBytes`.
++- After any write, automatically, when the log has passed `compactAfterBytes` (see below).
+ 
+ A failed automatic compaction doesn't fail the call that triggered it, because that call has already committed. `stats().lastCompactionError` shows the last failure.
+ 
+@@ -14,14 +14,20 @@ A failed automatic compaction doesn't fail the call that triggered it, because t
+ Compaction runs under the queue lock, after catching up, so the state it writes is complete.
+ 
+ 1. Build the snapshot from the current state, dropping finished jobs past `retainCompletedMs`.
+-2. Write the header and snapshot to `wal.log.compact`.
+-3. Rename it over `wal.log`.
+-4. Sync, and rebuild this process's state from the snapshot.
++2. Remove any `wal.log.compact` left by a compaction that died (we hold the lock, so it is nobody's), then write the header and snapshot to a fresh one and sync it.
++3. Rename it over `wal.log`. Windows refuses while anyone has the log open, so a refused rename is tried a few more times over a fraction of a second. If it still fails the temp file is removed and the compaction fails; the log is untouched and the next compaction starts clean.
++4. Rebuild this process's state from the snapshot.
++
++The temp file is durable before the rename, so a power cut can never leave an empty log.
+ 
+ ## What the snapshot holds
+ 
+-The jobs that are kept, and the counters the log needs to carry on. See [guarantees.md](guarantees.md), G10 and G11.
++The jobs that are kept with all their fields (attempts, tokens, due times and so on), the counters the log needs to carry on, and the idempotency keys still within their time to live, including keys whose job was dropped. See [guarantees.md](guarantees.md), G10 and G11.
+ 
+ ## Other processes
+ 
+-A process that was reading the old log finds a different file next time it catches up, and has to start again from the new one.
++A process that was reading the old log finds a different generation in the header next time it catches up, and starts again from the new one, whatever the sizes of the two files.
++
++## When it runs by itself
++
++Past `compactAfterBytes`, and once the log has grown by at least the size of its snapshot, so that a live state larger than the threshold is not rewritten on every write.
+diff --git a/docs/crash-testing.md b/docs/crash-testing.md
+index 5fe5b24..f1914b4 100644
+--- a/docs/crash-testing.md
++++ b/docs/crash-testing.md
+@@ -32,7 +32,7 @@ Within one process, `onFailpoint(name, callback)` runs a callback at the point i
+ | `wal.after-write` | All bytes are written, not yet synced | Yes |
+ | `wal.after-fsync` | The records are durable, and the call has not returned | Yes |
+ | `wal.after-create` | A brand new log has just got its final name | Yes |
+-| `compact.after-tmp-write` | The next log's bytes have been written to its temp file | Yes |
++| `compact.after-tmp-write` | The next log's bytes have been written to its temp file and synced | Yes |
+ | `compact.before-rename` | The temp file is about to replace the log | Yes |
+ | `compact.after-rename` | The temp file has replaced the log | Yes |
+ | `job.before-handler` | A worker holds a lease and has not called the handler | No |
+diff --git a/docs/leases-and-retries.md b/docs/leases-and-retries.md
+index ce6d4c0..686adea 100644
+--- a/docs/leases-and-retries.md
++++ b/docs/leases-and-retries.md
+@@ -4,17 +4,21 @@
+ 
+ `claim()` gives a job to a worker until `leaseUntil`, and hands back a `token`. The token goes on every later call about that attempt. A lease has expired once the clock reaches its deadline.
+ 
+-A worker running a long job calls `heartbeat()`. `JobRunner` does this on a timer, every `leaseMs / 3` by default.
++A worker running a long job calls `heartbeat()`. `JobRunner` does this on a timer, every `leaseMs / 3` by default, and keeps doing it while it waits to record the outcome. Heartbeats are written to the log, which is how the reaper in another process sees them.
++
++A lease that has passed its deadline is still the job's lease until a reaper, a reclaim, a new claim or a cancel acts on it; until then its holder can still heartbeat or commit.
++
++When a pool sees a worker exit it calls `reclaimWorker()`, which releases that worker's leases at once with no backoff (the attempt still counts).
+ 
+ Anyone can call `reapExpired()`. It returns expired jobs to the queue with a backoff, or sends them to `dead` when attempts have run out. An expired lease counts as a used attempt.
+ 
+ ## Tokens
+ 
+-The token is the job's `fence`, which goes up by one with each claim. A call with a token that isn't current throws `StaleLeaseError`.
++The token is the job's `fence`, which goes up by one with each claim and never goes back, not even for `requeueDead()`. A call with a token that isn't current throws `StaleLeaseError`.
+ 
+ ## Backoff
+ 
+-After an attempt fails, the job is due again after:
++After an attempt fails, the job is due again after (the due time is `at + delay`, fixed in the log record when the failure happens):
+ 
+ ```
+ delay = min(maxMs, baseMs * factor ^ (attempts - 1))
+diff --git a/docs/operations.md b/docs/operations.md
+index d7a2b4f..1e7bdba 100644
+--- a/docs/operations.md
++++ b/docs/operations.md
+@@ -2,7 +2,7 @@
+ 
+ ## Files
+ 
+-A queue directory holds `wal.log` and `queue.lock`. Temp files named `wal.log.*` can appear during compaction. Don't edit any of these by hand while the queue is in use.
++A queue directory holds `wal.log` and `queue.lock`. Temp files named `wal.log.*` can appear during compaction or log creation; a leftover from a crash is replaced automatically. Don't edit any of these by hand while the queue is in use.
+ 
+ ## Logging
+ 
+@@ -37,7 +37,7 @@ node src/cli.mjs requeue <dir> <id>   give a dead job new attempts
+ node src/cli.mjs cancel <dir> <id>    stop a job
+ ```
+ 
+-`inspect` takes no lock and changes nothing, so it's safe at any time. `tail` keeps the log open for as long as it runs.
++`inspect` takes no lock and changes nothing, so it's safe at any time. `tail` opens the log only while it reads, and follows across compactions. Don't point other tools at `wal.log` and leave them holding it open: on Windows a compaction cannot replace a file that is open. Brief holds are waited out; a long one fails the compaction (`lastCompactionError`), and the queue carries on.
+ 
+ ## Sizing
+ 
+@@ -45,4 +45,4 @@ Each write takes the lock and syncs, so throughput follows the disk's sync laten
+ 
+ ## Upgrades
+ 
+-The log format is stable. Stop the workers, deploy, and start them again. Older logs open without any conversion.
++The log format is stable; 0.5 adds the `release` record and more fields in snapshots, which older readers skip. Don't run old and new versions on one queue at the same time. Stop the workers, deploy, and start them again. Older logs open without any conversion.
+diff --git a/docs/rfc-007-exactly-once-completion.md b/docs/rfc-007-exactly-once-completion.md
+index b52727e..363b0f8 100644
+--- a/docs/rfc-007-exactly-once-completion.md
++++ b/docs/rfc-007-exactly-once-completion.md
+@@ -1,6 +1,6 @@
+ # RFC 007: Exactly-once completion
+ 
+-**Status:** accepted, not implemented.
++**Status:** accepted, implemented in 0.5.0.
+ 
+ ## Problem
+ 
+diff --git a/docs/wal-format.md b/docs/wal-format.md
+index ed65afb..1738e55 100644
+--- a/docs/wal-format.md
++++ b/docs/wal-format.md
+@@ -40,13 +40,20 @@ Every record has `t`, its type, and `at`, the writer's clock when it was written
+ | `claim` | `id, worker, fence, leaseUntil, at` | Job `leased`, attempts + 1, token = `fence` |
+ | `heartbeat` | `id, fence, leaseUntil, at` | Lease deadline moves |
+ | `complete` | `id, fence, result, at` | Job `done` |
++| `release` | `id, fence, error, at` | Lease given up because its worker is dead: job `ready` again at once (due at `at`), `error` becomes `lastError` |
+ | `fail` | `id, fence, error, delayMs, at` | Job `ready` again, after a delay |
+ | `expire` | `id, fence, error, delayMs, at` | Same, because the lease ran out |
+ | `dead` | `id, fence, error, at` | Job `dead` |
+ | `cancel` | `id, fence, error, at` | Job `cancelled` |
+ | `requeue` | `id, at` | Dead job `ready` again, attempts back to 0 |
+-| `snapshot` | `at, seq, jobs, ...` | Replaces all state. Always the first record of a compacted log |
++| `snapshot` | `at, seq, completionSeq, jobs, idem` | Replaces all state. Always the first record of a compacted log. Each job carries every job field. `idem` lists the remembered keys, `[{ key, id, at, status?, result? }]`; `status` and `result` are there for a key whose job has been pruned |
++
++A retry's due time is `at + delayMs` of its `fail` or `expire` record, so every reader and every replay computes the same time. A record about an attempt (`heartbeat`, `complete`, `fail`, `expire`, `release`) only counts while its `fence` is the job's live attempt. `complete` numbers commits by their order in the log (`completionSeq`).
+ 
+ A reader ignores record types it doesn't know. Older logs may lack newer fields: `priority` counts as 0, and an older snapshot may lack `attempts`, `fence` and `idem`.
+ 
++## Damage and unfinished writes
++
++Only the end of the log can hold an unfinished write: an incomplete frame, or a complete frame that fails its checksum with nothing after it. A reader holding the queue lock treats that as never written, and removes it before anything else is appended. Anything else that cannot be decoded raises `CorruptLogError` with its offset and the file is left untouched. A record may not exceed the payload limit; the writer refuses it before writing.
++
+ Job ids are `j<n>`, where `n` is the count of jobs ever enqueued, and are never reused.
+diff --git a/package.json b/package.json
+index 1df49f1..2352cb9 100644
+--- a/package.json
++++ b/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "walq",
+-  "version": "0.4.2",
++  "version": "0.5.0",
+   "description": "A small durable job queue backed by a write-ahead log. No runtime dependencies.",
+   "private": true,
+   "type": "module",
+diff --git a/scripts/stress.mjs b/scripts/stress.mjs
+index 04856b8..d7c096b 100644
+--- a/scripts/stress.mjs
++++ b/scripts/stress.mjs
+@@ -184,11 +184,12 @@ async function crashRound(round, random) {
+   );
+   const points = pickMany(random, CRASH_POINTS.filter((p) => !p.startsWith('compact.')), 4);
+   const rules = points.map((point) => `${point}=kill@${2 + Math.floor(random() * 12)}`).join(',');
+-  round.say(`armed: ${rules}`);
++  const power = random() < 0.5 ? { WALQ_SIMULATE_POWER_LOSS: '1' } : {};
++  round.say(`armed: ${rules} ${power.WALQ_SIMULATE_POWER_LOSS ? '(power loss model)' : ''}`);
+   await runPool(round, {
+     size: 3,
+     leaseMs: 900,
+-    env: { WALQ_FAILPOINTS: rules },
++    env: { WALQ_FAILPOINTS: rules, ...power },
+     queue: { backoff: { baseMs: 20, factor: 2, maxMs: 200 } },
+   });
+ 
+@@ -200,6 +201,9 @@ async function crashRound(round, random) {
+     if (!job) round.problem(`job ${id} was acknowledged and has vanished`);
+     else if (job.status !== 'done') round.problem(`job ${id} ended as ${job.status}`);
+   }
++  const seqs = queue.completions().map((c) => c.seq);
++  if (seqs.some((seq, i) => seq !== i + 1)) round.problem(`completion numbers are not 1..n: ${seqs}`);
++  if (seqs.length !== total) round.problem(`${seqs.length} completions for ${total} jobs`);
+   queue.close();
+ }
+ 
+@@ -217,9 +221,10 @@ async function compactionRound(round, random) {
+ 
+   const points = pickMany(random, CRASH_POINTS.filter((p) => p.startsWith('compact.')), 2);
+   const rules = points.map((point) => `${point}=kill`).join(',');
+-  round.say(`armed: ${rules}`);
++  const power = random() < 0.5 ? { WALQ_SIMULATE_POWER_LOSS: '1' } : {};
++  round.say(`armed: ${rules} ${power.WALQ_SIMULATE_POWER_LOSS ? '(power loss model)' : ''}`);
+ 
+-  const running = runPool(round, { size: 3, leaseMs: 900, env: { WALQ_FAILPOINTS: rules }, queue: options });
++  const running = runPool(round, { size: 3, leaseMs: 900, env: { WALQ_FAILPOINTS: rules, ...power }, queue: options });
+   for (let i = 0; i < 6; i += 1) {
+     await new Promise((resolve) => setTimeout(resolve, 100));
+     for (const again of queue.enqueueMany(items)) {
+diff --git a/src/cli.mjs b/src/cli.mjs
+index 950fb40..5a72a38 100644
+--- a/src/cli.mjs
++++ b/src/cli.mjs
+@@ -4,14 +4,14 @@
+ //   node src/cli.mjs inspect <dir>        print every record in the log
+ //   node src/cli.mjs stats <dir>          print job counts
+ //   node src/cli.mjs compact <dir>        compact now
+-//   node src/cli.mjs tail <dir>           follow the log, keeping it open
++//   node src/cli.mjs tail <dir>           follow the log as it grows
+ //   node src/cli.mjs metrics <dir>        print operational numbers
+ //   node src/cli.mjs requeue <dir> <id>   give a dead job a fresh set of attempts
+ //   node src/cli.mjs cancel <dir> <id>    stop a job that has not finished
+ 
+ import fs from 'node:fs';
+ import path from 'node:path';
+-import { HEADER_SIZE, scanFrames } from './frame.mjs';
++import { decodeHeader, HEADER_SIZE, scanFrames } from './frame.mjs';
+ import { describeRecord, inspectLog } from './inspect.mjs';
+ import { openQueue } from './queue.mjs';
+ import { WAL_FILE } from './store.mjs';
+@@ -58,25 +58,46 @@ function cancel(dir, id) {
+   queue.close();
+ }
+ 
+-// Keeps a read handle on the log so that it sees every byte as it arrives.
++// Follows the log without keeping it open between looks. Windows will not let
++// compaction replace a file that anyone has open, so a follower that held a handle
++// would stop the log from ever being compacted. Each look opens, reads and closes,
++// and starts again from the top when the generation changes.
+ function tail(dir) {
+-  const fd = fs.openSync(path.join(dir, WAL_FILE), 'r');
++  const file = path.join(dir, WAL_FILE);
++  let generation = null;
+   let offset = HEADER_SIZE;
+-  const timer = setInterval(() => {
+-    const size = fs.fstatSync(fd).size;
+-    if (size <= offset) return;
+-    const bytes = Buffer.alloc(size - offset);
+-    fs.readSync(fd, bytes, 0, bytes.length, offset);
+-    const { frames, end } = scanFrames(bytes, offset);
+-    for (const frame of frames) console.log(describeRecord(frame.record));
+-    offset = end;
+-  }, 200);
+-  process.on('SIGINT', () => {
+-    clearInterval(timer);
+-    fs.closeSync(fd);
+-  });
++  const look = () => {
++    let bytes;
++    try {
++      const fd = fs.openSync(file, 'r');
++      try {
++        const head = Buffer.alloc(HEADER_SIZE);
++        fs.readSync(fd, head, 0, HEADER_SIZE, 0);
++        const header = decodeHeader(head, file);
++        if (generation !== null && header.generation !== generation) {
++          console.log(`-- compacted: generation ${header.generation}`);
++          offset = HEADER_SIZE;
++        }
++        generation = header.generation;
++        const size = fs.fstatSync(fd).size;
++        if (size <= offset) return;
++        bytes = Buffer.alloc(size - offset);
++        fs.readSync(fd, bytes, 0, bytes.length, offset);
++      } finally {
++        fs.closeSync(fd);
++      }
++      const { frames, end } = scanFrames(bytes, offset, { final: false });
++      for (const frame of frames) console.log(describeRecord(frame.record));
++      offset = end;
++    } catch (err) {
++      console.error(`tail: ${err.message}`);
++      process.exitCode = 1;
++      clearInterval(timer);
++    }
++  };
++  const timer = setInterval(look, 200);
++  process.on('SIGINT', () => clearInterval(timer));
+ }
+-
+ const [command, dir, id] = process.argv.slice(2);
+ const commands = { inspect, stats, compact, tail, metrics, requeue, cancel };
+ if (!commands[command] || !dir) usage();
+diff --git a/src/compactor.mjs b/src/compactor.mjs
+index d79adca..56d00f5 100644
+--- a/src/compactor.mjs
++++ b/src/compactor.mjs
+@@ -2,38 +2,71 @@
+ // the queue lock. docs/compaction.md describes the protocol.
+ 
+ import path from 'node:path';
+-import { encodeFrame, encodeHeader } from './frame.mjs';
++import { sleepSync } from './clock.mjs';
++import { encodeFrame, encodeHeader, scanFrames } from './frame.mjs';
+ import { hit } from './failpoints.mjs';
+ import { buildSnapshot } from './snapshot.mjs';
+ 
++// Windows refuses to replace a file that anyone has open, however briefly: an
++// operator's tool, a backup, a virus scanner. Those holds are normally short, so
++// the rename is tried a few times. If the file stays held the compaction fails,
++// and the next one starts clean.
++const HELD = new Set(['EPERM', 'EBUSY', 'EACCES']);
++const RENAME_TRIES = 8;
++const RENAME_WAIT_MS = 4;
++
+ export function compactionTempPath(walFile) {
+   return `${walFile}.compact`;
+ }
+ 
++function renameWhenFree(ops, from, to) {
++  for (let tries = 1; ; tries += 1) {
++    try {
++      ops.rename(from, to);
++      return;
++    } catch (err) {
++      if (!HELD.has(err.code) || tries >= RENAME_TRIES) throw err;
++      sleepSync(RENAME_WAIT_MS * tries);
++    }
++  }
++}
++
+ /**
+  * Writes and installs the next generation of the log. Returns the snapshot and
+  * the size of the new file. If this throws, the old log is still in place.
+  */
+ export function compactLog({ wal, ops, state, generation, now, config }) {
+   const nextGeneration = generation + 1;
+-  const snapshot = buildSnapshot(state, now, config);
+-  const bytes = Buffer.concat([encodeHeader(nextGeneration), encodeFrame(snapshot)]);
++  const built = buildSnapshot(state, now, config);
++  const frame = encodeFrame(built);
++  const bytes = Buffer.concat([encodeHeader(nextGeneration), frame]);
+   const tempPath = compactionTempPath(wal.file);
+ 
+   try {
+-    // Exclusive, so two compactors can never write the same temp file.
+-    ops.create(tempPath, { exclusive: true });
++    // We hold the queue lock, so any temp file already here was left by a
++    // compaction that died. It is not ours to keep.
++    ops.unlink(tempPath);
++    ops.create(tempPath);
+     ops.writeAt(tempPath, bytes, 0);
++    // Durable before it takes the log's name: a rename can reach the disk ahead
++    // of the data, and that would leave an empty log.
++    ops.sync(tempPath);
+     hit('compact.after-tmp-write', { generation: nextGeneration });
+     hit('compact.before-rename', { generation: nextGeneration });
+-    ops.rename(tempPath, wal.file);
++    renameWhenFree(ops, tempPath, wal.file);
+     hit('compact.after-rename', { generation: nextGeneration });
+-    ops.sync(wal.file);
+     ops.syncDir(path.dirname(wal.file));
+   } catch (err) {
++    try {
++      ops.unlink(tempPath);
++    } catch {
++      // Left behind, it is removed by the next compaction.
++    }
+     err.message = `compaction failed: ${err.message}`;
+     throw err;
+   }
+ 
++  // What a process reading the new log will see, not the objects we built it from.
++  const [{ record: snapshot }] = scanFrames(frame).frames;
+   return { snapshot, generation: nextGeneration, size: bytes.length };
+ }
+diff --git a/src/errors.mjs b/src/errors.mjs
+index 322863c..fab93df 100644
+--- a/src/errors.mjs
++++ b/src/errors.mjs
+@@ -37,6 +37,13 @@ export class InvalidTransitionError extends WalqError {
+   }
+ }
+ 
++/** A record would not fit in a frame (docs/wal-format.md), so nothing was written. */
++export class RecordTooLargeError extends WalqError {
++  constructor(type, size, limit) {
++    super(`a ${type} record of ${size} bytes exceeds the ${limit} byte limit`, { type, size, limit });
++  }
++}
++
+ export class ConfigError extends WalqError {}
+ 
+ export class QueueClosedError extends WalqError {
+diff --git a/src/frame.mjs b/src/frame.mjs
+index 1be7be9..9f35484 100644
+--- a/src/frame.mjs
++++ b/src/frame.mjs
+@@ -2,7 +2,7 @@
+ // is a compatibility contract: logs already in production must stay readable.
+ 
+ import { crc32 } from './crc32.mjs';
+-import { CorruptLogError } from './errors.mjs';
++import { CorruptLogError, RecordTooLargeError } from './errors.mjs';
+ 
+ export const FORMAT_VERSION = 1;
+ export const HEADER_SIZE = 20;
+@@ -10,7 +10,7 @@ export const FRAME_OVERHEAD = 10;
+ 
+ const FILE_MAGIC = Buffer.from('WALQ', 'latin1');
+ const FRAME_MAGIC = 0xfbad;
+-const MAX_PAYLOAD = 64 * 1024 * 1024;
++export const MAX_PAYLOAD = 64 * 1024 * 1024;
+ 
+ export function encodeHeader(generation) {
+   const header = Buffer.alloc(HEADER_SIZE);
+@@ -40,6 +40,7 @@ export function decodeHeader(bytes, file = 'log') {
+ 
+ export function encodeFrame(record) {
+   const payload = Buffer.from(JSON.stringify(record), 'utf8');
++  if (payload.length > MAX_PAYLOAD) throw new RecordTooLargeError(record.t, payload.length, MAX_PAYLOAD);
+   const frame = Buffer.allocUnsafe(FRAME_OVERHEAD + payload.length);
+   frame.writeUInt16LE(FRAME_MAGIC, 0);
+   frame.writeUInt32LE(payload.length, 2);
+@@ -50,16 +51,18 @@ export function encodeFrame(record) {
+ 
+ function decodeFrameAt(bytes, pos) {
+   const remaining = bytes.length - pos;
+-  if (remaining < FRAME_OVERHEAD) return { ok: false, reason: 'partial' };
++  if (remaining < FRAME_OVERHEAD) return { ok: false, reason: 'partial', needed: FRAME_OVERHEAD };
+   if (bytes.readUInt16LE(pos) !== FRAME_MAGIC) return { ok: false, reason: 'bad-magic' };
+   const length = bytes.readUInt32LE(pos + 2);
+   if (length > MAX_PAYLOAD) return { ok: false, reason: 'bad-length' };
+-  if (remaining < FRAME_OVERHEAD + length) return { ok: false, reason: 'partial' };
++  if (remaining < FRAME_OVERHEAD + length) {
++    return { ok: false, reason: 'partial', needed: FRAME_OVERHEAD + length };
++  }
+   const start = pos + FRAME_OVERHEAD;
+   const payload = bytes.subarray(start, start + length);
+   const expected = bytes.readUInt32LE(pos + 6);
+   if (expected !== crc32(payload, crc32(bytes.subarray(pos + 2, pos + 6)))) {
+-    return { ok: false, reason: 'bad-checksum' };
++    return { ok: false, reason: 'bad-checksum', next: start + length };
+   }
+   try {
+     return { ok: true, record: JSON.parse(payload.toString('utf8')), next: start + length };
+@@ -72,25 +75,42 @@ function decodeFrameAt(bytes, pos) {
+  * Walks frames starting at the beginning of `bytes`, which sit at `baseOffset`
+  * in the file. Returns the decoded frames, the file offset just after the last
+  * good one, and `tail` when the bytes after that are not a complete frame.
++ *
++ * `final` says that `bytes` reaches the end of the file. Only then can the last
++ * frame be judged a cut-off write: a frame that is all there but fails its
++ * checksum, with nothing after it, is a write that did not finish reaching the
++ * disk. The same frame with anything after it is damage and raises. When
++ * `final` is false the frame might simply be followed by more of the file, so
++ * it is reported as `partial` and the caller reads on.
++ *
++ * `tail.needed` is the number of bytes the unfinished frame would occupy, when
++ * that is known.
+  */
+-export function scanFrames(bytes, baseOffset = 0) {
++export function scanFrames(bytes, baseOffset = 0, { final = true } = {}) {
+   const frames = [];
+   let pos = 0;
+   let tail = null;
+   while (pos < bytes.length) {
+     const decoded = decodeFrameAt(bytes, pos);
+     if (!decoded.ok) {
+-      if (decoded.reason !== 'partial') {
++      const atEnd = decoded.reason === 'bad-checksum' && decoded.next === bytes.length;
++      if (decoded.reason !== 'partial' && !atEnd) {
+         throw new CorruptLogError(
+           `corrupt record at offset ${baseOffset + pos} (${decoded.reason})`,
+           { offset: baseOffset + pos, reason: decoded.reason },
+         );
+       }
+-      tail = { offset: baseOffset + pos, reason: decoded.reason, bytes: bytes.length - pos };
++      const reason = atEnd && !final ? 'partial' : decoded.reason;
++      tail = {
++        offset: baseOffset + pos,
++        reason,
++        bytes: bytes.length - pos,
++        needed: decoded.needed ?? (atEnd ? bytes.length - pos : undefined),
++      };
+       break;
+     }
+     frames.push({ offset: baseOffset + pos, size: decoded.next - pos, record: decoded.record });
+     pos = decoded.next;
+   }
+   return { frames, end: baseOffset + pos, tail };
+-}
++}
+diff --git a/src/index.mjs b/src/index.mjs
+index a3ec684..086d274 100644
+--- a/src/index.mjs
++++ b/src/index.mjs
+@@ -11,6 +11,7 @@ export {
+   InvalidTransitionError,
+   LockTimeoutError,
+   QueueClosedError,
++  RecordTooLargeError,
+   StaleLeaseError,
+   UnknownJobError,
+   WalqError,
+diff --git a/src/inspect.mjs b/src/inspect.mjs
+index 3b9b6aa..2f36529 100644
+--- a/src/inspect.mjs
++++ b/src/inspect.mjs
+@@ -29,6 +29,8 @@ export function describeRecord(record) {
+       return `${record.t} ${record.id} fence=${record.fence} delayMs=${record.delayMs}`;
+     case 'cancel':
+       return `cancel ${record.id} fence=${record.fence}`;
++    case 'release':
++      return `release ${record.id} fence=${record.fence} reason=${record.error}`;
+     case 'dead':
+       return `dead ${record.id} fence=${record.fence} error=${record.error}`;
+     case 'snapshot':
+diff --git a/src/queue.mjs b/src/queue.mjs
+index 6e77ea7..2d6a5c9 100644
+--- a/src/queue.mjs
++++ b/src/queue.mjs
+@@ -16,6 +16,8 @@ import {
+   enqueueRecord,
+   expireRecord,
+   failRecord,
++  heartbeatRecord,
++  releaseRecord,
+   requeueRecord,
+ } from './records.mjs';
+ import { Store } from './store.mjs';
+@@ -49,11 +51,21 @@ export class Queue {
+   }
+ 
+   #requireLease(job, token) {
+-    if (job.status !== 'leased') {
++    if (job.status !== 'leased' || job.fence !== token) {
+       throw new StaleLeaseError(job.id, token, job.fence);
+     }
+   }
+ 
++  #receipt(job, outcome) {
++    return {
++      id: job.id,
++      outcome,
++      token: job.fence,
++      result: structuredClone(job.result),
++      completedAt: job.completedAt,
++      completionSeq: job.completionSeq,
++    };
++  }
+   #newEnqueue(type, payload, options, now, offset = 0) {
+     const key = options.key ?? null;
+     return enqueueRecord({
+@@ -82,13 +94,15 @@ export class Queue {
+     hit('enqueue.before-lock', { key });
+     return this.store.withLock(() => {
+       const now = this.clock.now();
++      // Another process may have used the key since the check above.
++      const seen = key ? lookupKey(this.store.state, key, now, this.config.idempotencyTtlMs) : null;
++      if (seen) return { ...seen, deduped: true };
+       const record = this.#newEnqueue(type, payload, options, now);
+       this.store.append([record]);
+       this.store.maybeCompact();
+       return { id: record.id, status: 'ready', deduped: false };
+     });
+   }
+-
+   /**
+    * Adds several jobs under one lock and one fsync. A crash part way through can
+    * leave a prefix of the batch behind, so use keys if you will retry the batch.
+@@ -126,49 +140,54 @@ export class Queue {
+    */
+   claim(worker, { leaseMs = this.config.leaseMs, types = null } = {}) {
+     this.store.refresh();
+-    const job = pickNextReady(this.store.state, this.clock.now(), types);
+-    if (!job) return null;
+-    const fence = job.fence + 1;
++    if (!pickNextReady(this.store.state, this.clock.now(), types)) return null;
+     hit('claim.before-lock', { worker });
+     return this.store.withLock(() => {
+       const now = this.clock.now();
++      // Choose again: another process may have taken the job since the look above.
++      const job = pickNextReady(this.store.state, now, types);
++      if (!job) return null;
++      const fence = job.fence + 1;
+       const leaseUntil = now + leaseMs;
++      const claimed = { id: job.id, type: job.type, payload: job.payload, attempt: job.attempts + 1 };
+       this.store.append([claimRecord({ id: job.id, worker, fence, leaseUntil, at: now })]);
+       this.store.maybeCompact();
+-      const claimed = this.store.state.jobs.get(job.id);
+-      return {
+-        id: claimed.id,
+-        type: claimed.type,
+-        payload: claimed.payload,
+-        attempt: claimed.attempts,
+-        token: fence,
+-        leaseUntil,
+-      };
++      return { ...claimed, token: fence, leaseUntil };
+     });
+   }
+ 
+-  /** Extends a lease. Throws StaleLeaseError if the lease is no longer ours. */
++  /**
++   * Extends a lease. Throws StaleLeaseError if the lease is no longer ours. The
++   * extension is written to the log, because the process that decides whether a
++   * lease has expired is usually not the one that is heartbeating.
++   */
+   heartbeat(id, token, { leaseMs = this.config.leaseMs } = {}) {
+-    // Heartbeats fire several times per lease. An fsync for each one would dominate
+-    // the log, so they only extend the lease this process is holding.
+-    const job = this.#require(id);
+-    this.#requireLease(job, token);
+-    const leaseUntil = this.clock.now() + leaseMs;
+-    job.lease.until = leaseUntil;
+-    return { leaseUntil };
++    return this.store.withLock(() => {
++      const job = this.#require(id);
++      this.#requireLease(job, token);
++      const now = this.clock.now();
++      const leaseUntil = now + leaseMs;
++      this.store.append([heartbeatRecord({ id, fence: token, leaseUntil, at: now })]);
++      this.store.maybeCompact();
++      return { leaseUntil };
++    });
+   }
+ 
+-  /** Marks a job finished and stores its result. */
++  /**
++   * Commits a job's result. The commit is the `complete` record being durable.
++   * Repeating the call with the token that committed returns the same receipt
++   * and writes nothing. See docs/rfc-007-exactly-once-completion.md.
++   */
+   complete(id, token, result = null) {
+     hit('complete.before-lock', { id });
+     return this.store.withLock(() => {
+       const job = this.#require(id);
++      if (job.status === 'done' && job.fence === token) return this.#receipt(job, 'already-committed');
+       this.#requireLease(job, token);
+-      const record = completeRecord({ id, fence: token, result, at: this.clock.now() });
+-      // Completions are the hot path. The next synced append flushes this one too.
+-      this.store.append([record], { sync: false });
++      this.store.append([completeRecord({ id, fence: token, result, at: this.clock.now() })]);
++      const receipt = this.#receipt(this.store.state.jobs.get(id), 'committed');
+       this.store.maybeCompact();
+-      return { id, status: 'done' };
++      return receipt;
+     });
+   }
+ 
+@@ -181,6 +200,7 @@ export class Queue {
+       const text = errorText(error);
+       if (job.attempts >= job.maxAttempts) {
+         this.store.append([deadRecord({ id, fence: token, error: text, at: now })]);
++        this.store.maybeCompact();
+         return { id, status: 'dead', retryAt: null };
+       }
+       const delayMs = computeBackoff(job.attempts, this.config.backoff, id);
+@@ -193,11 +213,12 @@ export class Queue {
+   /** Returns jobs whose lease ran out to the queue. Safe to call from anywhere. */
+   reapExpired() {
+     this.store.refresh();
+-    const expired = expiredLeases(this.store.state, this.clock.now());
+-    if (expired.length === 0) return [];
++    if (expiredLeases(this.store.state, this.clock.now()).length === 0) return [];
+     hit('reap.before-lock');
+     return this.store.withLock(() => {
+       const now = this.clock.now();
++      // Look again under the lock: a heartbeat or a commit may have arrived since.
++      const expired = expiredLeases(this.store.state, now);
+       const records = [];
+       const reaped = [];
+       for (const job of expired) {
+@@ -218,6 +239,33 @@ export class Queue {
+     });
+   }
+ 
++  /**
++   * Gives up every lease held by `workerId`, a worker known to be dead, without
++   * waiting for the leases to expire. The attempt counts, the retry is not
++   * delayed, and the old tokens are stale from here on.
++   */
++  reclaimWorker(workerId, { reason = 'worker died' } = {}) {
++    return this.store.withLock(() => {
++      const now = this.clock.now();
++      const records = [];
++      const reclaimed = [];
++      for (const job of this.store.state.jobs.values()) {
++        if (job.status !== 'leased' || job.lease.worker !== workerId) continue;
++        if (job.attempts >= job.maxAttempts) {
++          records.push(deadRecord({ id: job.id, fence: job.fence, error: reason, at: now }));
++          reclaimed.push({ id: job.id, status: 'dead' });
++        } else {
++          records.push(releaseRecord({ id: job.id, fence: job.fence, error: reason, at: now }));
++          reclaimed.push({ id: job.id, status: 'ready' });
++        }
++      }
++      if (records.length) {
++        this.store.append(records);
++        this.store.maybeCompact();
++      }
++      return reclaimed;
++    });
++  }
+   /** Stops a job that has not finished. Any worker holding it loses its lease. */
+   cancel(id, { reason = 'cancelled' } = {}) {
+     return this.store.withLock(() => {
+@@ -249,6 +297,41 @@ export class Queue {
+     });
+   }
+ 
++  /** The outcome of a job by id, or null if it is not known. See RFC 007. */
++  getResult(id) {
++    return this.store.withLock(() => {
++      const job = this.store.state.jobs.get(id);
++      if (!job) return null;
++      if (job.status !== 'done') return { id, status: job.status };
++      return {
++        id,
++        status: 'done',
++        result: structuredClone(job.result),
++        token: job.fence,
++        attempts: job.attempts,
++        completedAt: job.completedAt,
++        completionSeq: job.completionSeq,
++      };
++    });
++  }
++
++  /** The retained commits after `after`, in commit order. See RFC 007. */
++  completions({ after = 0, limit = Infinity } = {}) {
++    return this.store.withLock(() => {
++      const found = [];
++      for (const job of this.store.state.jobs.values()) {
++        if (job.status === 'done' && job.completionSeq !== null && job.completionSeq > after) found.push(job);
++      }
++      found.sort((a, b) => a.completionSeq - b.completionSeq);
++      return found.slice(0, limit).map((job) => ({
++        seq: job.completionSeq,
++        id: job.id,
++        token: job.fence,
++        result: structuredClone(job.result),
++        completedAt: job.completedAt,
++      }));
++    });
++  }
+   listJobs() {
+     return this.store.withLock(() => [...this.store.state.jobs.values()].map((job) => structuredClone(job)));
+   }
+diff --git a/src/records.mjs b/src/records.mjs
+index 2e3e033..e25b086 100644
+--- a/src/records.mjs
++++ b/src/records.mjs
+@@ -24,6 +24,10 @@ export function expireRecord({ id, fence, delayMs, at }) {
+   return { t: 'expire', id, fence, error: 'lease expired', delayMs, at };
+ }
+ 
++export function releaseRecord({ id, fence, error, at }) {
++  return { t: 'release', id, fence, error, at };
++}
++
+ export function deadRecord({ id, fence, error, at }) {
+   return { t: 'dead', id, fence, error, at };
+ }
+@@ -34,4 +38,4 @@ export function cancelRecord({ id, fence, error, at }) {
+ 
+ export function requeueRecord({ id, at }) {
+   return { t: 'requeue', id, at };
+-}
++}
+diff --git a/src/retention.mjs b/src/retention.mjs
+index cf3361d..fa8a6b0 100644
+--- a/src/retention.mjs
++++ b/src/retention.mjs
+@@ -8,4 +8,4 @@ export function isTerminal(job) {
+ 
+ export function isPastRetention(job, now, config) {
+   return isTerminal(job) && now - job.completedAt >= config.retainCompletedMs;
+-}
++}
+diff --git a/src/snapshot.mjs b/src/snapshot.mjs
+index 738f527..bb72c39 100644
+--- a/src/snapshot.mjs
++++ b/src/snapshot.mjs
+@@ -3,29 +3,34 @@
+ import { isPastRetention } from './retention.mjs';
+ 
+ function serializeJob(job) {
+-  return {
+-    id: job.id,
+-    type: job.type,
+-    payload: job.payload,
+-    key: job.key,
+-    status: job.status,
+-    maxAttempts: job.maxAttempts,
+-    availableAt: job.availableAt,
+-    lease: job.lease,
+-    result: job.result,
+-    lastError: job.lastError,
+-    enqueuedAt: job.enqueuedAt,
+-    completedAt: job.completedAt,
+-    completionSeq: job.completionSeq,
+-    seq: job.seq,
+-  };
++  return { ...job };
++}
++
++/**
++ * The idempotency keys a snapshot has to carry. A key outlives its job, so a key
++ * whose job is being dropped keeps the job's outcome with it, and only keys past
++ * their time to live are let go.
++ */
++function keepKeys(state, kept, now, config) {
++  const keys = [];
++  for (const [key, entry] of state.idem) {
++    if (now - entry.at >= config.idempotencyTtlMs) continue;
++    const item = { key, id: entry.id, at: entry.at };
++    if (!kept.has(entry.id)) {
++      const job = state.jobs.get(entry.id);
++      item.status = job?.status ?? entry.status ?? 'done';
++      item.result = job ? job.result ?? null : entry.result ?? null;
++    }
++    keys.push(item);
++  }
++  return keys;
+ }
+ 
+ /** Builds the snapshot record, dropping terminal jobs past their retention. */
+ export function buildSnapshot(state, now, config) {
+-  const kept = [];
++  const kept = new Map();
+   for (const job of state.jobs.values()) {
+-    if (!isPastRetention(job, now, config)) kept.push(job);
++    if (!isPastRetention(job, now, config)) kept.set(job.id, job);
+   }
+ 
+   return {
+@@ -33,7 +38,8 @@ export function buildSnapshot(state, now, config) {
+     at: now,
+     seq: state.seq,
+     completionSeq: state.completionSeq,
+-    jobs: kept.map(serializeJob),
++    jobs: [...kept.values()].map(serializeJob),
++    idem: keepKeys(state, kept, now, config),
+   };
+ }
+ 
+@@ -50,8 +56,11 @@ export function loadSnapshot(state, rec) {
+       fence: job.fence ?? job.lease?.fence ?? 0,
+       completionSeq: job.completionSeq ?? null,
+     });
+-    if (job.key && !state.idem.has(job.key)) {
+-      state.idem.set(job.key, { id: job.id, at: job.enqueuedAt });
+-    }
++    // A snapshot from before keys were stored separately: the newest job to use
++    // a key owns it, as when the log was replayed record by record.
++    if (!rec.idem && job.key) state.idem.set(job.key, { id: job.id, at: job.enqueuedAt });
+   }
+-}
++  for (const item of rec.idem ?? []) {
++    state.idem.set(item.key, { id: item.id, at: item.at, status: item.status, result: item.result });
++  }
++}
+diff --git a/src/state.mjs b/src/state.mjs
+index a454e7b..feebbf0 100644
+--- a/src/state.mjs
++++ b/src/state.mjs
+@@ -1,5 +1,6 @@
+ // The queue's state is a pure fold over the log. Replaying the same records must
+-// give the same state in every process, at any time.
++// give the same state in every process, at any time, so nothing in here may read
++// a clock: every time comes from the record.
+ 
+ import { loadSnapshot } from './snapshot.mjs';
+ 
+@@ -14,7 +15,12 @@ function requeue(job, availableAt, error) {
+   job.lastError = error ?? job.lastError;
+ }
+ 
+-export function applyRecord(state, rec, clock) {
++/** A record about an attempt only counts while that attempt is the live one. */
++function holdsLease(job, rec) {
++  return job.status === 'leased' && job.fence === rec.fence;
++}
++
++export function applyRecord(state, rec) {
+   if (rec.t === 'snapshot') {
+     loadSnapshot(state, rec);
+     return;
+@@ -55,9 +61,10 @@ export function applyRecord(state, rec, clock) {
+       job.lease = { worker: rec.worker, fence: rec.fence, until: rec.leaseUntil };
+       break;
+     case 'heartbeat':
+-      if (job.lease && job.lease.fence === rec.fence) job.lease.until = rec.leaseUntil;
++      if (holdsLease(job, rec)) job.lease.until = rec.leaseUntil;
+       break;
+     case 'complete':
++      if (!holdsLease(job, rec)) break;
+       state.completionSeq += 1;
+       job.status = 'done';
+       job.lease = null;
+@@ -67,10 +74,14 @@ export function applyRecord(state, rec, clock) {
+       break;
+     case 'fail':
+     case 'expire':
+-      requeue(job, clock.now() + rec.delayMs, rec.error);
++      if (holdsLease(job, rec)) requeue(job, rec.at + rec.delayMs, rec.error);
++      break;
++    case 'release':
++      if (holdsLease(job, rec)) requeue(job, rec.at, rec.error);
+       break;
+     case 'dead':
+     case 'cancel':
++      if (job.status !== 'ready' && job.status !== 'leased') break;
+       job.status = rec.t === 'dead' ? 'dead' : 'cancelled';
+       job.lease = null;
+       job.lastError = rec.error ?? job.lastError;
+@@ -78,7 +89,6 @@ export function applyRecord(state, rec, clock) {
+       break;
+     case 'requeue':
+       job.attempts = 0;
+-      job.fence = 0;
+       job.completedAt = null;
+       requeue(job, rec.at, job.lastError);
+       break;
+@@ -87,4 +97,4 @@ export function applyRecord(state, rec, clock) {
+       // tools able to read the rest of the log.
+       break;
+   }
+-}
++}
+diff --git a/src/store.mjs b/src/store.mjs
+index 920b82c..d83bdf4 100644
+--- a/src/store.mjs
++++ b/src/store.mjs
+@@ -4,7 +4,7 @@
+ 
+ import path from 'node:path';
+ import { compactLog } from './compactor.mjs';
+-import { QueueClosedError } from './errors.mjs';
++import { CorruptLogError, QueueClosedError } from './errors.mjs';
+ import { FORMAT_VERSION, HEADER_SIZE } from './frame.mjs';
+ import { createFileOps, ensureDir } from './fsops.mjs';
+ import { acquireLock } from './lock.mjs';
+@@ -74,29 +74,53 @@ export class Store {
+ 
+   catchUp() {
+     const header = this.wal.readHeader();
+-    if (this.generation === null || this.ops.size(this.wal.file) < this.offset) {
++    const size = this.ops.size(this.wal.file);
++    // A different generation means another process compacted: that file is a
++    // new history, whatever its size, and has to be read from its start.
++    if (this.generation === null || header.generation !== this.generation) {
+       this.state = createState();
+       this.offset = HEADER_SIZE;
++      this.snapshotBytes = 0;
+       this.generation = header.generation;
++    } else if (size < this.offset) {
++      this.generation = null;
++      throw new CorruptLogError(`${this.wal.file}: log is ${size} bytes, shorter than the ${this.offset} already read`, {
++        offset: size,
++        reason: 'shrunk',
++      });
+     }
+ 
+-    const { frames, end, tail } = this.wal.scanFrom(this.offset);
+-    for (const frame of frames) {
+-      applyRecord(this.state, frame.record, this.clock);
+-      if (frame.record.t === 'snapshot') this.snapshotBytes = frame.size;
++    let tail;
++    try {
++      ({ tail } = this.wal.scanFrom(this.offset, (frames, end) => {
++        for (const frame of frames) {
++          applyRecord(this.state, frame.record);
++          if (frame.record.t === 'snapshot') this.snapshotBytes = frame.size;
++        }
++        this.offset = end;
++      }));
++    } catch (err) {
++      // The state is only part of the log now. Start again next time, and fail
++      // the same way again, rather than carry on from a partial picture.
++      this.generation = null;
++      throw err;
+     }
+-    this.offset = end;
+ 
+     if (tail) {
++      // We hold the lock, so nobody is writing: this is the remains of a write
++      // that never finished. Nothing was acknowledged from it. Cut it off so
++      // that it cannot sit in front of what is written next.
++      this.wal.truncate(this.offset);
+       this.tornTailsDropped += 1;
+-      log.warn('ignored incomplete tail', { offset: end, reason: tail.reason, bytes: tail.bytes });
++      log.warn('removed incomplete tail', { offset: this.offset, reason: tail.reason, bytes: tail.bytes });
+     }
+   }
+ 
+   /** Must be called inside withLock(). */
+   append(records, options) {
+-    this.offset = this.wal.append(records, options);
+-    for (const record of records) applyRecord(this.state, record, this.clock);
++    this.offset = this.wal.append(records, { ...options, at: this.offset });
++    // Apply what a reader of the log will see, not the caller's objects.
++    for (const record of records) applyRecord(this.state, JSON.parse(JSON.stringify(record)));
+   }
+ 
+   /** Must be called inside withLock(). */
+@@ -120,13 +144,16 @@ export class Store {
+   }
+ 
+   /**
+-   * Compacts when the log has outgrown the threshold. A failure here must not
+-   * fail the operation that triggered it, because that operation has committed.
++   * Compacts when the log has outgrown the threshold, and has grown by at least
++   * the size of its snapshot since, so that a state bigger than the threshold is
++   * not rewritten on every write. A failure here must not fail the operation
++   * that triggered it, because that operation has committed.
+    */
+   maybeCompact() {
+     const threshold = this.config.compactAfterBytes;
+     if (!threshold) return;
+     if (this.offset < threshold) return;
++    if (this.offset - HEADER_SIZE < 2 * this.snapshotBytes) return;
+     try {
+       this.compact();
+       this.lastCompactionError = null;
+@@ -135,7 +162,6 @@ export class Store {
+       log.warn('compaction failed', { error: err.message });
+     }
+   }
+-
+   describe() {
+     return {
+       format: FORMAT_VERSION,
+diff --git a/src/wal.mjs b/src/wal.mjs
+index 386cfa2..e54a00b 100644
+--- a/src/wal.mjs
++++ b/src/wal.mjs
+@@ -5,8 +5,8 @@ import path from 'node:path';
+ import { decodeHeader, encodeFrame, encodeHeader, HEADER_SIZE, scanFrames } from './frame.mjs';
+ import { hit, isArmed } from './failpoints.mjs';
+ 
+-// Bounds memory when a process has fallen far behind. The next catch-up reads on
+-// from wherever this one stopped.
++// Bounds memory when a process has fallen far behind: the log is read and applied
++// this much at a time. A frame bigger than this is read in one piece.
+ const SCAN_CHUNK = 1024 * 1024;
+ 
+ export class Wal {
+@@ -19,14 +19,17 @@ export class Wal {
+     return this.ops.exists(this.file);
+   }
+ 
+-  /** Creates an empty log. The header appears atomically or not at all. */
++  /**
++   * Creates an empty log. The header is made durable under a temporary name
++   * first, so the log appears atomically, complete, or not at all.
++   */
+   create(generation = 1) {
+     const staging = `${this.file}.init`;
+     this.ops.create(staging);
+     this.ops.writeAt(staging, encodeHeader(generation), 0);
++    this.ops.sync(staging);
+     this.ops.rename(staging, this.file);
+     hit('wal.after-create', {});
+-    this.ops.sync(this.file);
+     this.ops.syncDir(path.dirname(this.file));
+   }
+ 
+@@ -34,31 +37,62 @@ export class Wal {
+     return decodeHeader(this.ops.read(this.file, 0, HEADER_SIZE), this.file);
+   }
+ 
+-  /** Decodes everything from `offset` to the end of the file. */
+-  scanFrom(offset) {
+-    return scanFrames(this.ops.read(this.file, offset, SCAN_CHUNK), offset);
++  /**
++   * Decodes everything from `offset` to the end of the file, a chunk at a time.
++   * `visit(frames, end)` gets each batch of good frames and the offset after
++   * them. Returns `{ end, tail }`, where `tail` describes an unfinished write
++   * at the very end of the file, if there is one. Damage anywhere else throws
++   * CorruptLogError and leaves the file alone.
++   */
++  scanFrom(offset, visit) {
++    let pos = offset;
++    let chunk = SCAN_CHUNK;
++    for (;;) {
++      const size = this.ops.size(this.file);
++      if (pos >= size) return { end: pos, tail: null };
++      const bytes = this.ops.read(this.file, pos, chunk);
++      const final = pos + bytes.length >= size;
++      const scan = scanFrames(bytes, pos, { final });
++      if (scan.frames.length) visit(scan.frames, scan.end);
++      pos = scan.end;
++      if (final) return { end: pos, tail: scan.tail };
++      if (scan.tail) chunk = Math.max(chunk, (scan.tail.needed ?? 0) + 1);
++    }
+   }
+ 
+   truncate(length) {
+     this.ops.truncate(this.file, length);
+   }
+ 
+-  /** Writes records at the end of the file. Returns the new end offset. */
+-  append(records, { sync = true } = {}) {
++  /**
++   * Writes records at `at`, which must be the end of the good part of the log.
++   * Returns the new end offset. If the write fails part way, the bytes are
++   * taken back out so that an unacknowledged record cannot appear later.
++   */
++  append(records, { sync = true, at = this.ops.size(this.file) } = {}) {
+     const type = records[0]?.t;
+     const bytes = Buffer.concat(records.map(encodeFrame));
+-    const at = this.ops.size(this.file);
+-    hit('wal.before-append', { type });
+-    if (isArmed('wal.mid-append')) {
+-      const half = bytes.length >> 1;
+-      this.ops.writeAt(this.file, bytes.subarray(0, half), at);
+-      hit('wal.mid-append', { type });
+-      this.ops.writeAt(this.file, bytes.subarray(half), at + half);
+-    } else {
+-      this.ops.writeAt(this.file, bytes, at);
++    try {
++      hit('wal.before-append', { type });
++      if (isArmed('wal.mid-append')) {
++        const half = bytes.length >> 1;
++        this.ops.writeAt(this.file, bytes.subarray(0, half), at);
++        hit('wal.mid-append', { type });
++        this.ops.writeAt(this.file, bytes.subarray(half), at + half);
++      } else {
++        this.ops.writeAt(this.file, bytes, at);
++      }
++      hit('wal.after-write', { type });
++      if (sync) this.ops.sync(this.file);
++    } catch (err) {
++      try {
++        this.ops.truncate(this.file, at);
++      } catch {
++        // The original failure is the one to report. Whatever is left past `at`
++        // is an unfinished tail, which the next catch-up removes.
++      }
++      throw err;
+     }
+-    hit('wal.after-write', { type });
+-    if (sync) this.ops.sync(this.file);
+     hit('wal.after-fsync', { type });
+     return at + bytes.length;
+   }
+diff --git a/src/worker/pool.mjs b/src/worker/pool.mjs
+index 1b622e7..96d674a 100644
+--- a/src/worker/pool.mjs
++++ b/src/worker/pool.mjs
+@@ -2,6 +2,7 @@
+ // jobs to the queue when their lease runs out.
+ 
+ import { fork } from 'node:child_process';
++import { randomBytes } from 'node:crypto';
+ import { EventEmitter } from 'node:events';
+ import { fileURLToPath } from 'node:url';
+ import { sleep } from '../clock.mjs';
+@@ -36,6 +37,10 @@ export class WorkerPool extends EventEmitter {
+     this.maxRespawns = maxRespawns;
+     this.children = new Map();
+     this.incarnation = 0;
++    // Worker ids are shared by everything using the queue directory, and a reclaim
++    // acts on an id, so ids must never collide with another pool's.
++    this.poolId = `${process.pid}-${randomBytes(3).toString('hex')}`;
++    this.unreclaimed = new Set();
+     this.respawns = 0;
+     this.stopping = false;
+     this.reaper = null;
+@@ -55,11 +60,27 @@ export class WorkerPool extends EventEmitter {
+     } catch (err) {
+       this.emit('error-event', err);
+     }
++    for (const workerId of [...this.unreclaimed]) this.#reclaim(workerId);
++  }
++
++  /**
++   * A worker that has exited holds nothing any more, so its jobs go back at once
++   * instead of waiting for their leases. If the queue is busy the reaper tries
++   * again; the lease expiring is the backstop.
++   */
++  #reclaim(workerId, reason = 'worker exited') {
++    try {
++      this.queue.reclaimWorker(workerId, { reason });
++      this.unreclaimed.delete(workerId);
++    } catch (err) {
++      this.unreclaimed.add(workerId);
++      this.emit('error-event', err);
++    }
+   }
+ 
+   #spawn() {
+     this.incarnation += 1;
+-    const workerId = `w${this.incarnation}`;
++    const workerId = `w${this.poolId}-${this.incarnation}`;
+     const child = fork(CHILD_PATH, [JSON.stringify({ ...this.options, workerId })], {
+       env: { ...process.env, ...this.env },
+       silent: true,
+@@ -77,6 +98,7 @@ export class WorkerPool extends EventEmitter {
+     this.children.delete(workerId);
+     this.emit('exit', { workerId, code, signal });
+     log.info('worker exited', { workerId, code, signal, stopping: this.stopping });
++    this.#reclaim(workerId, `worker exited (${signal ?? `code ${code}`})`);
+     if (this.stopping) return;
+     if (this.respawns < this.maxRespawns) {
+       this.respawns += 1;
+diff --git a/src/worker/runner.mjs b/src/worker/runner.mjs
+index 93c9264..798b473 100644
+--- a/src/worker/runner.mjs
++++ b/src/worker/runner.mjs
+@@ -2,11 +2,27 @@
+ // heartbeat going, then record the outcome.
+ 
+ import { sleep } from '../clock.mjs';
+-import { StaleLeaseError, UnknownJobError, WalqError } from '../errors.mjs';
++import {
++  CorruptLogError,
++  LockTimeoutError,
++  RecordTooLargeError,
++  StaleLeaseError,
++  UnknownJobError,
++  WalqError,
++} from '../errors.mjs';
+ import { hit } from '../failpoints.mjs';
+ import { JOB_COMPLETED, JOB_FAILED, JOB_FENCED, JOB_STARTED, WORKER_ERROR } from './protocol.mjs';
+ import { runWithTimeout } from './registry.mjs';
+ 
++const RECORD_RETRY_MIN_MS = 10;
++const RECORD_RETRY_MAX_MS = 500;
++
++// A problem with the call itself, which trying again cannot cure. Anything else
++// (a busy lock, a disk that hiccuped) is worth another try.
++function cannotRetry(err) {
++  return err instanceof WalqError && !(err instanceof LockTimeoutError) && !(err instanceof CorruptLogError);
++}
++
+ export class JobRunner {
+   constructor({ queue, workerId, handlers, leaseMs, heartbeatMs, pollMs = 20, types = null, emit = () => {} }) {
+     this.queue = queue;
+@@ -52,7 +68,7 @@ export class JobRunner {
+       try {
+         this.queue.heartbeat(id, token, { leaseMs: this.leaseMs });
+       } catch (err) {
+-        if (err instanceof StaleLeaseError) {
++        if (err instanceof StaleLeaseError || err instanceof UnknownJobError) {
+           clearInterval(beat);
+           abort.abort();
+         } else {
+@@ -61,40 +77,66 @@ export class JobRunner {
+       }
+     }, this.heartbeatMs);
+ 
+-    let result;
++    // The heartbeat keeps going until the outcome is recorded: a worker that is
++    // still trying to hand in its result is still alive.
+     try {
+-      const handler = this.handlers.get(job.type);
+-      if (!handler) throw new Error(`no handler for job type ${job.type}`);
+-      result = await runWithTimeout(
+-        handler,
+-        job.payload,
+-        { id, attempt: job.attempt, token, workerId: this.workerId, signal: abort.signal },
+-        abort,
+-      );
+-    } catch (err) {
++      let result;
++      let failure;
++      try {
++        const handler = this.handlers.get(job.type);
++        if (!handler) throw new Error(`no handler for job type ${job.type}`);
++        result = await runWithTimeout(
++          handler,
++          job.payload,
++          { id, attempt: job.attempt, token, workerId: this.workerId, signal: abort.signal },
++          abort,
++        );
++        // A result that cannot be written down fails the attempt now, rather
++        // than being retried for ever below.
++        JSON.stringify(result ?? null);
++      } catch (err) {
++        failure = err;
++      }
++
++      if (failure !== undefined) {
++        await this.#record(id, () => this.queue.fail(id, token, failure), JOB_FAILED, failure);
++        return;
++      }
++      hit('job.after-handler', { id });
++      const refused = await this.#record(id, () => this.queue.complete(id, token, result), JOB_COMPLETED);
++      if (refused instanceof RecordTooLargeError) {
++        await this.#record(id, () => this.queue.fail(id, token, refused), JOB_FAILED, refused);
++      }
++      hit('job.after-complete', { id });
++    } finally {
+       clearInterval(beat);
+-      await this.#report(id, () => this.queue.fail(id, token, err), JOB_FAILED, err);
+-      return;
+     }
+-
+-    clearInterval(beat);
+-    hit('job.after-handler', { id });
+-    await this.#report(id, () => this.queue.complete(id, token, result), JOB_COMPLETED);
+-    hit('job.after-complete', { id });
+   }
+ 
+-  // A fenced worker has lost the job to someone else. That is an expected end for
+-  // this attempt, not an error.
+-  async #report(id, call, kind, cause) {
+-    try {
+-      call();
+-      this.emit({ kind, id, error: cause?.message });
+-    } catch (err) {
+-      if (err instanceof StaleLeaseError || err instanceof UnknownJobError) {
+-        this.emit({ kind: JOB_FENCED, id });
+-      } else {
++  /**
++   * Records what happened, however long that takes. Once a handler has finished,
++   * its outcome matters more than anything else this worker could be doing, so a
++   * busy queue or a failing disk is waited out rather than given up on. The two
++   * ways out are success and learning that the lease is gone, which is an
++   * expected end for this attempt and not an error: the result is discarded.
++   */
++  async #record(id, call, kind, cause) {
++    let wait = RECORD_RETRY_MIN_MS;
++    for (;;) {
++      try {
++        const receipt = call();
++        this.emit({ kind, id, error: cause?.message, outcome: receipt?.outcome });
++        return null;
++      } catch (err) {
++        if (err instanceof StaleLeaseError || err instanceof UnknownJobError) {
++          this.emit({ kind: JOB_FENCED, id });
++          return null;
++        }
+         this.emit({ kind: WORKER_ERROR, id, error: err.message });
++        if (cannotRetry(err)) return err;
+       }
++      await sleep(wait);
++      wait = Math.min(wait * 2, RECORD_RETRY_MAX_MS);
+     }
+   }
+-}
++}
+diff --git a/test/helpers/tmp.mjs b/test/helpers/tmp.mjs
+index 9ec1c1b..4d84d04 100644
+--- a/test/helpers/tmp.mjs
++++ b/test/helpers/tmp.mjs
+@@ -1,6 +1,10 @@
++import { fork } from 'node:child_process';
+ import fs from 'node:fs';
+ import os from 'node:os';
+ import path from 'node:path';
++import { fileURLToPath } from 'node:url';
++
++const CHILD = fileURLToPath(new URL('./crash-child.mjs', import.meta.url));
+ 
+ const cleanups = new WeakMap();
+ 
+@@ -48,3 +52,23 @@ export async function waitUntil(check, { timeoutMs = 15_000, stepMs = 20 } = {})
+     await new Promise((resolve) => setTimeout(resolve, stepMs));
+   }
+ }
++
++/** Runs helpers/crash-child.mjs and resolves with how it ended. */
++export function crashChild(t, dir, op, { env = {}, args } = {}) {
++  const markers = tempDir(t, 'walq-markers-');
++  const child = fork(CHILD, [dir, op, JSON.stringify(args ?? {})], {
++    env: { ...process.env, WALQ_FAILPOINT_DIR: markers, ...env },
++    silent: true,
++  });
++  defer(t, () => child.kill());
++  let stderr = '';
++  child.stderr.on('data', (chunk) => { stderr += chunk; });
++  return new Promise((resolve) => {
++    child.on('exit', (code, signal) => {
++      // Windows reports a self-inflicted SIGKILL as exit code 1, so the marker a
++      // kill failpoint writes first is the evidence that it fired.
++      const killed = fs.readdirSync(markers).some((name) => name.endsWith('.hit'));
++      resolve({ code, signal, killed, markers, stderr });
++    });
++  });
++}

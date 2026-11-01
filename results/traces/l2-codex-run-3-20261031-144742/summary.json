@@ -1,0 +1,175 @@
+{
+  "condition": "codex",
+  "workspace": "C:\\invoice-work\\7ee08c44\\workspace",
+  "ending": {
+    "reason": "turn.completed",
+    "isError": false
+  },
+  "steps": 70,
+  "toolCalls": 33,
+  "toolsUsed": {
+    "exec_command": 33
+  },
+  "said": 7,
+  "reasoning": {
+    "blocks": 30,
+    "withVisibleText": 30
+  },
+  "requests": 33,
+  "peakContextTokens": 104286,
+  "outputCharsReturnedToModel": 167127,
+  "commands": 33,
+  "testRuns": [
+    {
+      "seq": 2,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 25,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 31,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 33,
+      "exit": 0,
+      "pass": 106,
+      "fail": 5
+    },
+    {
+      "seq": 53,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 55,
+      "exit": 0,
+      "pass": 111,
+      "fail": 0
+    },
+    {
+      "seq": 57,
+      "exit": 0,
+      "pass": 111,
+      "fail": 0
+    },
+    {
+      "seq": 68,
+      "exit": 0,
+      "pass": 118,
+      "fail": 0
+    }
+  ],
+  "blocked": [
+    {
+      "seq": 25,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "code: 'EPERM',",
+      "command": "cd C:\\invoice-work\\7ee08c44\\workspace; npm test 2>&1 | Select-Object -Last 25; cd src; Get-Content reporting/fx.mjs, ledger/dunning.mjs; Get-Content reporting/forecast.mjs | select -First 30"
+    }
+  ],
+  "filesReadThroughATool": [],
+  "filesEditedThroughATool": [],
+  "filesNamedInShellCommands": [
+    ".",
+    "docs/principles.md",
+    "package.json",
+    "CHANGELOG.md",
+    "docs/proration.md",
+    "docs/rounding.md",
+    "README.md",
+    "src/core/dates.mjs",
+    "src/core/money.mjs",
+    "src",
+    "test/support/world.mjs",
+    "test/book-cases.mjs",
+    "test/calendar-cases.mjs",
+    "test/credit-note-cases.mjs",
+    "test/invoice-cases.mjs",
+    "../core/money.mjs",
+    "src/reporting/forecast.mjs",
+    "src/reporting/statement.mjs",
+    "src/index.mjs",
+    "test/regression-cases.mjs"
+  ],
+  "outsidePathsTouched": [
+    "../core/money.mjs"
+  ],
+  "disk": {
+    "inventoried": true,
+    "created": [
+      "test/regression-cases.mjs"
+    ],
+    "modified": [
+      "package.json",
+      "CHANGELOG.md",
+      "docs/proration.md",
+      "docs/rounding.md",
+      "src/core/money.mjs",
+      "src/reporting/statement.mjs",
+      "src/book.mjs",
+      "src/invoicing/allocation.mjs",
+      "src/invoicing/pipeline.mjs",
+      "src/ledger/balances.mjs",
+      "src/ledger/credit-notes.mjs",
+      "src/ledger/settlement.mjs",
+      "src/reporting/export.mjs",
+      "src/reporting/revenue.mjs",
+      "src/reporting/tax-report.mjs",
+      "src/schedule/periods.mjs",
+      "src/subscriptions/plan-change.mjs",
+      "src/subscriptions/proration.mjs",
+      "src/subscriptions/renewal.mjs",
+      "src/subscriptions/segments.mjs",
+      "src/tax/calculate.mjs"
+    ],
+    "deleted": [],
+    "filesBefore": 55,
+    "unchangedFiles": 34,
+    "unchangedAndReadOnDisk": 34,
+    "neverReadOnDisk": [],
+    "readOnDiskButNotThroughATool": [
+      ".gitignore",
+      "src/catalog/catalog.mjs",
+      "src/catalog/plans.mjs",
+      "src/core/currencies.mjs",
+      "src/core/rounding.mjs",
+      "src/core/sequence.mjs",
+      "src/core/validate.mjs",
+      "src/customers/registry.mjs",
+      "src/invoicing/discounts.mjs",
+      "src/invoicing/invoice.mjs",
+      "src/ledger/account.mjs",
+      "src/ledger/dunning.mjs",
+      "src/ledger/instalments.mjs",
+      "src/ledger/journal.mjs",
+      "src/reporting/customer.mjs",
+      "src/reporting/fx.mjs",
+      "src/reporting/notices.mjs",
+      "src/subscriptions/record.mjs",
+      "src/subscriptions/scheduled-changes.mjs",
+      "src/subscriptions/timeline.mjs",
+      "src/tax/rates.mjs",
+      "test/catalog-cases.mjs",
+      "test/money-cases.mjs",
+      "test/reporting-cases.mjs"
+    ]
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "All the complaints were real defects in the code, and they're fixed. `node --test --test-isolation=none \"test/*.mjs\"` passes (118 tests, 0 failures). I couldn't run `npm test` itself because the sandbox blocks the test runner from spawning processes (`spawn EPERM`), so please run it once on your side. I added `test/regression-cases.mjs` with a case for most of the fixes below.\n\n**Fixes for the complaints**\n- **31 January renewals:** Each renewal date was stepped from the previous one, so after February the billing day stayed at 28. Dates are now counted from the anchor (`src/schedule/periods.mjs`), giving 28 Feb, 31 Mar, 30 Apr and so on. The 0.2.1 changelog entry already promised this.\n- **16 February proration:** The code left out the change day, but `docs/proration.md` says that day is billed at the new price. I treated the doc as right, and its example now reproduces exactly (-14.00 and +28.00).\n- **Plan-change credit amounts:** The credit was worked out from list price, ignoring discounts and earlier credits. It now gives back the net the customer actually paid for the time left, capped at what remains after earlier credits (principle 7). It uses the tax rate the charge was billed at. A plan change also no longer uses up a coupon period.\n- **Japan and Kuwait:** `src/core/money.mjs` assumed 2 decimals for every currency. It now follows the currency table when reading and formatting amounts. The CSV exports and statements had the same assumption and are fixed too, via a new `formatDecimal`.\n- **Line items not adding up:** `allocate` used `Math.round` and dumped the remainder on the last line. It now splits exactly (largest remainder, mirrored for negatives). Tax is worked out once per rate and then spread over the lines, so lines add up to the total.\n- **Staged refunds:** Credit notes were capped against the pre-discount amount and taxed per note, so rounding drifted. They are now capped at the net charged, and tax is taken as a share of the line's own tax. Credit lines on later invoices (plan changes, cancellations) now count against the original charge.\n- **Refund destination:** Cash refunds were not limited to cash received. Refunds now go to the invoice balance first, then to cash up to what was received, and the rest to account credit (principle 8).\n- **Account credit and tax:** Credit was being taken off the lines before tax, which understated the tax. It is now applied after tax as a payment, and `invoiceBalance` and the journal reflect that (principle 9).\n\n**Other bugs found on the other billing paths**\n- Invoice numbers were consumed even when issuing the invoice failed, which left gaps.\n- Revenue and tax reports included credit notes from other currencies.\n\n**Docs changed**\n- `docs/rounding.md` said the default was half-up. The code and changelog 0.4.0 say half-even at finance's request, so I corrected the doc and added the `half-even` row.\n- `docs/proration.md` now describes how the credit is calculated, and states that a change doesn't start a new coupon period.\n- `CHANGELOG.md` has a 0.9.3 entry, and `package.json` is bumped to 0.9.3.\n\n**Things I wasn't sure about**\n- `planChangeAmounts` still prorates list prices only. It's a public helper and I left its behaviour alone.\n- Credit-note refunds are limited to cash received minus earlier refunds. I didn't check whether credit lines on later invoices should also reduce refundable cash.\n- I found no single cause for the reconciliation and month-end report problems. Likely contributors are the rounding drift, the account-credit handling and the cross-currency report bug, but I can't confirm that without a real account to replay."
+}

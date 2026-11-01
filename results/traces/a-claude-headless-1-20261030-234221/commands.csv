@@ -1,0 +1,6 @@
+seq,at,finishedAt,tool,command,exit,testPass,testFail,blockedBy,blockedMessage,outputChars
+"2","2026-10-30T22:42:26.109Z","2026-10-30T22:42:27.677Z","Bash","git ls-files | head -50","0","","","","","89"
+"8","2026-10-30T22:42:31.405Z","2026-10-30T22:42:31.443Z","Bash","npm test 2>&1 | head -40; ls ../shared 2>&1","","","","harness-permission","This Bash command contains multiple operations. The following parts require approval: npm test 2>&1, head -40; ls ../shared 2>&1","128"
+"9","2026-10-30T22:42:32.500Z","2026-10-30T22:42:33.265Z","PowerShell","npm test","","","","harness-permission","This PowerShell command contains multiple operations. The following part requires approval: npm test","100"
+"11","2026-10-30T22:42:34.573Z","2026-10-30T22:42:35.245Z","PowerShell","node --test","","","","harness-permission","This PowerShell command contains multiple operations. The following part requires approval: node --test","103"
+"13","2026-10-30T22:42:36.449Z","2026-10-30T22:42:36.458Z","Bash","npm test","","","","harness-permission","This command requires approval","30"

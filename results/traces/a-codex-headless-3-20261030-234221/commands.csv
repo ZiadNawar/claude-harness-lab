@@ -1,0 +1,4 @@
+seq,at,finishedAt,tool,command,exit,testPass,testFail,blockedBy,blockedMessage,outputChars
+"1","2026-10-30T22:46:56.213Z","2026-10-30T22:46:56.511Z","exec_command","Get-ChildItem -Force | Select-Object Name; git status --short; git log --oneline -5","","","","harness-policy","rejected: blocked by policy","289"
+"2","2026-10-30T22:46:56.275Z","2026-10-30T22:46:56.564Z","exec_command","rg --files -g '!node_modules' -g '!.git' | Select-Object -First 100","","","","harness-policy","rejected: blocked by policy","299"
+"4","2026-10-30T22:46:58.130Z","2026-10-30T22:46:58.296Z","exec_command","dir","","","","harness-policy","rejected: blocked by policy","218"

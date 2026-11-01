@@ -1,0 +1,114 @@
+{
+  "condition": "claude",
+  "workspace": "C:\\invoice-work\\cad23dc5\\workspace",
+  "ending": {
+    "reason": "completed",
+    "isError": false,
+    "turns": 62,
+    "apiMs": 147933,
+    "ms": 153901
+  },
+  "steps": 67,
+  "toolCalls": 61,
+  "toolsUsed": {
+    "Bash": 4,
+    "Glob": 1,
+    "Read": 32,
+    "Write": 5,
+    "Edit": 18,
+    "Grep": 1
+  },
+  "said": 6,
+  "reasoning": {
+    "blocks": 9,
+    "withVisibleText": 0
+  },
+  "requests": 20,
+  "peakContextTokens": 79515,
+  "outputCharsReturnedToModel": 77644,
+  "commands": 4,
+  "testRuns": [
+    {
+      "seq": 63,
+      "exit": 0,
+      "pass": 59,
+      "fail": 1
+    },
+    {
+      "seq": 66,
+      "exit": 0,
+      "pass": 60,
+      "fail": 0
+    }
+  ],
+  "blocked": [
+    {
+      "seq": 1,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: xargs wc -l && cat package.json",
+      "command": "git ls-files | xargs wc -l && cat package.json"
+    }
+  ],
+  "filesReadThroughATool": [
+    "src/currencies.mjs",
+    "src/rounding.mjs",
+    "src/money.mjs",
+    "src/dates.mjs",
+    "src/schedule.mjs",
+    "src/allocation.mjs",
+    "src/proration.mjs",
+    "src/tax.mjs",
+    "src/invoice.mjs",
+    "src/credit-note.mjs",
+    "src/plans.mjs",
+    "src/subscription.mjs",
+    "src/statement.mjs",
+    "src/index.mjs",
+    "package.json",
+    "docs/billing-periods.md",
+    "docs/proration.md",
+    "docs/currencies.md",
+    "docs/rounding.md",
+    "docs/allocation.md",
+    "docs/tax.md",
+    "docs/credit-notes.md",
+    "README.md",
+    "CHANGELOG.md",
+    "test/calendar-cases.mjs",
+    "test/money-cases.mjs",
+    "test/allocation-cases.mjs",
+    "test/proration-cases.mjs",
+    "test/invoice-cases.mjs",
+    "test/subscription-cases.mjs",
+    "test/credit-note-cases.mjs"
+  ],
+  "filesEditedThroughATool": [
+    "src/money.mjs",
+    "src/schedule.mjs",
+    "src/allocation.mjs",
+    "src/proration.mjs",
+    "src/tax.mjs",
+    "src/credit-note.mjs",
+    "src/statement.mjs",
+    "docs/rounding.md",
+    "CHANGELOG.md",
+    "test/regression-cases.mjs"
+  ],
+  "filesNamedInShellCommands": [
+    "src/proration.mjs",
+    "src/tax.mjs"
+  ],
+  "outsidePathsTouched": [],
+  "disk": {
+    "inventoried": false,
+    "note": "This run predates the file inventories, so disk changes and disk reads aren't available."
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "All six complaints are fixed in the code, and `npm test` passes. That is 60 tests, including a new `test/regression-cases.mjs` with randomized checks for tax and staged refunds. I haven't committed anything.\n\n## What I changed\n\n1. **Renewal dates stuck on the 28th** (`src/schedule.mjs`).\n   - **Cause:** each renewal was calculated from the previous one, so one short month moved the billing day for good. A hard-coded February of 28 days also ignored leap years, which is why the 2024 customer was billed on 28 February.\n   - **Fix:** every date is now calculated from the anchor. A 31 January anchor now gives 28/29 February, then 31 March, 30 April and 31 May. `docs/billing-periods.md` already described this, so I left it alone.\n\n2. **Proration** (`src/proration.mjs`).\n   - **Cause:** the code left the change day out of the days remaining, but the docs say the new plan starts on the change date. The invoice line text (\"from changeDate to end\") agrees with the docs.\n   - **Fix:** I changed the code. The 16 February 2024 example now gives -14.00 and +28.00, as `docs/proration.md` says.\n\n3. **Japan and Kuwait** (`src/money.mjs`, `src/statement.mjs`).\n   - **Cause:** parsing, formatting and statements all assumed two decimals.\n   - **Fix:** they now use each currency's own decimals, so yen are 100 times smaller than before, KWD shows three decimals, and KWD plans such as `\"9.500\"` can be defined. Parsing also no longer loses precision on very large amounts.\n\n4. **Line items not adding to the total** (`src/tax.mjs`).\n   - **Cause:** tax was rounded per line and also per rate group, and the two disagreed.\n   - **Fix:** the group tax is calculated once and shared across its lines. The shares add up exactly and each is within one minor unit of its exact value. This also covers credit and charge lines that cancel to zero.\n\n5. **Discount spread** (`src/allocation.mjs`).\n   - **Cause:** `allocate` used floating-point `Math.round` and dumped the leftover on the last line, which is how a free line went negative.\n   - **Fix:** I rewrote it to follow `docs/allocation.md`: round each share down, then give leftover units to the largest remainders, earlier lines first on a tie.\n\n6. **Staged refunds** (`src/credit-note.mjs`).\n   - **Cause:** credits were capped at the line amount before discount, so a discounted invoice could be over-refunded. Tax was also recalculated from the rate on each note, so rounding drifted.\n   - **Fix:** the cap is now the line's net after discount. Each note's tax is the running share of the line's actual tax, so a fully credited line returns its tax exactly and the balance ends at zero.\n\n## Docs changed\n\n- **`docs/rounding.md`:** it said the default is half-up, but the code and tests use half-even, which finance asked for in 0.4.0. I corrected the doc and added half-even to the table.\n- **`CHANGELOG.md`:** I added an \"Unreleased\" entry for the above.\n\n## What I was unsure about\n\n- **Proration:** the repo has no changelog entry or test that settles whether the change day belongs to the old or the new plan. I followed the doc and the invoice line wording. If finance meant the other way, the doc and the one-line change in `prorationFraction` flip together. Either way, existing changed-plan invoices will differ.\n- **Statements:** I kept the columns free of thousands separators, as before, and only fixed the decimals. The totals lines (\"Total: USD 1,234.50\") still use separators.\n- **Existing invoices:** these changes alter the output for 29–31 anchors, KWD and JPY amounts, tax splits, discount splits and credit-note tax. Anything already issued or stored will not match a regenerated copy."
+}

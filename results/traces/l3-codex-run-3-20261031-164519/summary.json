@@ -1,0 +1,230 @@
+{
+  "condition": "codex",
+  "workspace": "C:\\invoice-work\\fa264438\\workspace",
+  "ending": {
+    "reason": "turn.completed",
+    "isError": false
+  },
+  "steps": 98,
+  "toolCalls": 47,
+  "toolsUsed": {
+    "exec_command": 44,
+    "write_stdin": 3
+  },
+  "said": 18,
+  "reasoning": {
+    "blocks": 33,
+    "withVisibleText": 33
+  },
+  "requests": 42,
+  "peakContextTokens": 128992,
+  "outputCharsReturnedToModel": 153730,
+  "commands": 44,
+  "testRuns": [
+    {
+      "seq": 30,
+      "exit": null,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 32,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 35,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 40,
+      "exit": 1,
+      "pass": 35,
+      "fail": 2
+    },
+    {
+      "seq": 77,
+      "exit": 1,
+      "pass": 36,
+      "fail": 1
+    },
+    {
+      "seq": 79,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 82,
+      "exit": 0,
+      "pass": 42,
+      "fail": 0
+    },
+    {
+      "seq": 92,
+      "exit": 1,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 94,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    }
+  ],
+  "blocked": [
+    {
+      "seq": 13,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "const NO_DIR_SYNC = new Set(['EPERM', 'EISDIR', 'EINVAL', 'EBADF', 'EACCES']);",
+      "command": "cd src; foreach($f in 'wal','fsops','lock'){ \"=== $f\"; Get-Content \"$f.mjs\" -Raw }"
+    },
+    {
+      "seq": 30,
+      "tool": "exec_command",
+      "by": "harness-policy",
+      "message": "rejected: blocked by policy",
+      "command": "node --version; npm test 2>&1 | Select-Object -Last 30\n$d = Join-Path $env:TEMP 'walq-rn'; Remove-Item -Recurse -Force $d -ErrorAction SilentlyContinue; New-Item -ItemType Directory $d | Out-Null\nnode -e \"\nconst fs=require('fs'),p=require('path');const d=process.argv[1];\nfs.writeFileSync(p.join(d,'a'),'old');fs.writeFileSync(p.join(d,'b'),'new');\nconst fd=fs.openSync(p.join(d,'a'),'r');\ntry{fs.renameSync(p.join(d,'b'),p.join(d,'a'));console.log('rename over open (node r) ok')}catch(e){console.log('rename over open:',e.code)}\nfs.closeSync(fd);\n\" $d"
+    },
+    {
+      "seq": 32,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "code: 'EPERM',",
+      "command": "npm test 2>&1 | Select-Object -Last 25"
+    },
+    {
+      "seq": 35,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "Error: spawn EPERM",
+      "command": "node --test --test-isolation=none test/queue-basics.mjs test/compaction.mjs test/leases.mjs test/recovery.mjs test/failpoints.mjs test/backoff-schedule.mjs test/frame-format.mjs 2>&1 | Select-Object -Last 30; node -e \"require('child_process').fork('-e',[])\" 2>&1 | Select -First 3"
+    },
+    {
+      "seq": 51,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "rename over open handle: EPERM",
+      "command": "$s = @'\nconst fs=require('fs'),os=require('os'),p=require('path');\nconst d=fs.mkdtempSync(p.join(os.tmpdir(),'rn-'));\nfs.writeFileSync(p.join(d,'a'),'old');fs.writeFileSync(p.join(d,'b'),'new');\nconst fd=fs.openSync(p.join(d,'a'),'r');\ntry{fs.renameSync(p.join(d,'b'),p.join(d,'a'));console.log('rename over open handle: ok')}catch(e){console.log('rename over open handle:',e.code)}\nfs.closeSync(fd);\nfs.writeFileSync(p.join(d,'b'),'new2');\ntry{fs.renameSync(p.join(d,'b'),p.join(d,'a'));console.log('after close: ok')}catch(e){console.log('after close:',e.code)}\nfs.rmSync(d,{recursive:true,force:true});\n'@\nSet-Content -Path .\\rn-probe.cjs -Value $s; node .\\rn-probe.cjs; Remove-Item .\\rn-probe.cjs"
+    },
+    {
+      "seq": 89,
+      "tool": "exec_command",
+      "by": "os-denied",
+      "message": "code: 'EPERM',",
+      "command": "Remove-Item fuzz.mjs\nfunction RW($p,$old,$new){ $f=\"$PWD/$p\"; $s=[IO.File]::ReadAllText($f); if(-not $s.Contains($old)){throw \"nomatch $p : $old\"}; [IO.File]::WriteAllText($f,$s.Replace($old,$new),(New-Object Text.UTF8Encoding $false)) }\nRW 'src/retention.mjs' \"new Set(['done', 'dead'])\" \"new Set(['done', 'dead', 'cancelled'])\"\nnode scripts/stress.mjs --seconds 5 2>&1 | Select -Last 8"
+    }
+  ],
+  "filesReadThroughATool": [],
+  "filesEditedThroughATool": [],
+  "filesNamedInShellCommands": [
+    "../package.json,../CHANGELOG.md",
+    "CHANGELOG.md",
+    "package.json",
+    "src/inspect.mjs",
+    "scripts/stress-handlers.mjs",
+    "scripts/stress.mjs",
+    "test/queue-basics.mjs",
+    "test/compaction.mjs",
+    "test/failpoints.mjs",
+    "test/recovery.mjs",
+    "test/backoff-schedule.mjs",
+    "test/frame-format.mjs",
+    "test/leases.mjs",
+    "src/crc32.mjs",
+    "src/frame.mjs",
+    "docs/compaction.md",
+    "docs/wal-format.md",
+    "src/compactor.mjs",
+    "src/wal.mjs",
+    "src/records.mjs",
+    "src/snapshot.mjs",
+    "src/state.mjs",
+    "src/store.mjs",
+    "docs/operations.md",
+    "src/queue.mjs",
+    "src/worker/pool.mjs",
+    "src/worker/runner.mjs",
+    "src/cli.mjs",
+    "src/index.mjs",
+    "test/crash-recovery.mjs",
+    "README.md",
+    "../src/index.mjs",
+    "src/retention.mjs",
+    "docs/api.md",
+    "docs/leases-and-retries.md",
+    "docs/rfc-007-exactly-once-completion.md"
+  ],
+  "outsidePathsTouched": [
+    "../package.json,../CHANGELOG.md",
+    "../src/index.mjs"
+  ],
+  "disk": {
+    "inventoried": true,
+    "created": [
+      "test/crash-recovery.mjs"
+    ],
+    "modified": [
+      "CHANGELOG.md",
+      "src/inspect.mjs",
+      "src/frame.mjs",
+      "docs/compaction.md",
+      "docs/wal-format.md",
+      "src/compactor.mjs",
+      "src/wal.mjs",
+      "src/records.mjs",
+      "src/snapshot.mjs",
+      "src/state.mjs",
+      "src/store.mjs",
+      "docs/operations.md",
+      "src/queue.mjs",
+      "src/worker/pool.mjs",
+      "src/worker/runner.mjs",
+      "src/cli.mjs",
+      "docs/api.md",
+      "docs/leases-and-retries.md",
+      "docs/rfc-007-exactly-once-completion.md"
+    ],
+    "deleted": [],
+    "filesBefore": 55,
+    "unchangedFiles": 36,
+    "unchangedAndReadOnDisk": 36,
+    "neverReadOnDisk": [],
+    "readOnDiskButNotThroughATool": [
+      ".gitignore",
+      "docs/architecture.md",
+      "docs/crash-testing.md",
+      "docs/guarantees.md",
+      "src/backoff.mjs",
+      "src/clock.mjs",
+      "src/config.mjs",
+      "src/errors.mjs",
+      "src/failpoints.mjs",
+      "src/fsops.mjs",
+      "src/idempotency.mjs",
+      "src/lease.mjs",
+      "src/lock.mjs",
+      "src/logger.mjs",
+      "src/metrics.mjs",
+      "src/worker/child.mjs",
+      "src/worker/protocol.mjs",
+      "src/worker/registry.mjs",
+      "test/helpers/append-then-die.mjs",
+      "test/helpers/handlers.mjs",
+      "test/helpers/tmp.mjs",
+      "test/worker-pool.mjs"
+    ]
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "I fixed the problems I found and implemented RFC 007. I couldn't run the two things that need child processes, `npm run stress` and `test/worker-pool.mjs`, because the sandbox blocks spawning (`spawn EPERM`). Please run both on a real host, with several seeds for stress.\n\n## Root causes and fixes\n\n- **Tuesday's `CorruptLogError`:** a torn write left a checksum-bad last frame or zeros at the end of `wal.log`, and the next append went in after that debris. Now only the last frame of the file can count as a torn tail (short, zero-filled, or a bad checksum on the final frame), and the next write overwrites it. Damage anywhere else still raises `CorruptLogError` with the offset and leaves the file untouched. Trimming by hand was what lost your jobs.\n- **Large logs and the large-queue job loss:** catch-up read only 1 MiB and treated the rest as a torn tail. A record bigger than that could never be read, and a restart could drop everything past the first chunk. Reading is now chunked and loops to the end of the file. Oversized records are rejected before they touch the log.\n- **Double runs:**\n  - Heartbeats were never written to the log, so other processes' reapers expired live leases. They are now logged.\n  - `claim` and `reapExpired` decided on state read before taking the lock, so two processes could take the same job. They now decide inside the lock.\n  - Tokens weren't compared against the current lease. They are now.\n- **Idempotency key sent twice:** compaction dropped keys along with pruned jobs. Snapshots now carry the keys still within their TTL, plus the outcome for pruned jobs. `enqueue` also checks the key inside the lock.\n- **Retry behaviour after a restart:**\n  - Replay used `clock.now() + delayMs` instead of the record's own `at`, so retry times moved on every restart.\n  - Snapshots dropped `attempts`, `fence` and `priority`, which is why a job with a limit of 5 kept retrying.\n  - `requeue` reset the fence, which reissued tokens.\n  - Fixed all three, and `applyRecord` no longer reads a clock.\n- **Compaction:**\n  - A leftover `.compact` file caused `EEXIST` forever. It is now removed first.\n  - The EPERM came from renaming over a log held open by `tail` or a backup. Compaction now moves the old log aside, installs the new one and deletes the old one. A crash in between is recovered on open.\n  - `walq tail` no longer keeps the log open between polls.\n  - The 0-byte `wal.log` came from renaming before the temp file was synced. It is now synced first.\n  - Other processes follow a compaction by header generation, not by file size.\n  - Automatic compaction backs off after a failure, and waits for the log to reach twice its snapshot size so a large live state doesn't compact on every write.\n- **RFC 007:**\n  - `complete()` returns a receipt and is idempotent for the committing token.\n  - Added `getResult`, `completions` and `reclaimWorker`, plus the new `release` record.\n  - `complete` is now synced. It was written unsynced, which broke G1.\n  - The pool reclaims a dead worker's leases on exit. Worker ids now include a per-pool id, so a reclaim only affects the worker that died.\n  - A worker whose handler has returned keeps retrying to record the outcome until it is recorded or fenced.\n\nI also updated `api`, `wal-format`, `compaction`, `operations`, `leases-and-retries`, the RFC status and `CHANGELOG.md`. The format change is additive: the `release` record and the snapshot `idem` field are ignored by old readers, and old snapshots open with defaults.\n\n## Testing\n\n- **Existing in-process tests:** the 33 tests in the files that don't spawn processes pass, run with `node --test --test-isolation=none`. Before my changes, two recovery tests were failing (one of them needs a child process).\n- **New `test/crash-recovery.mjs`:** 42 tests that use the power-loss model with throwing failpoints in place of kills. They cover:\n  - torn tails, zero-filled tails and mid-log damage;\n  - big logs and records;\n  - every compaction crash point and compaction while a file handle is open;\n  - retry, attempt and token persistence across restarts;\n  - keys surviving pruning;\n  - two-process races;\n  - the RFC crash table and the RFC API.\n- **Randomized fuzz run:** I ran a throwaway three-process fuzz on 8 seeds (about 4,000 operations each, mixing reopens and compactions). It checked for:\n  - no token reissued;\n  - no claim after a commit;\n  - keys deduped;\n  - all processes agreeing on state.\n\n  It passed, and I deleted it afterwards.\n\n## Not done or not sure\n\n- **Real kills untested:** `npm run stress`, `test/worker-pool.mjs` and real `kill` failpoints in child processes haven't been run against these changes.\n- **Power-loss model is per-process:** the multi-process fuzz ran without it, and the crash tests ran with it in a single process.\n- **Windows-only rename fallback:** I confirmed the EPERM behaviour and the move-aside workaround on this Windows machine. I didn't test macOS.\n- **Heartbeat cost:** each heartbeat now costs a lock and an fsync. That is the correct fix for double runs, but it is a throughput cost on busy queues.\n- **Cancelled jobs are never pruned:** I noticed this and left it alone, because the docs only say finished jobs are pruned."
+}

@@ -1,0 +1,403 @@
+{
+  "matrix": {
+    "fixture": {
+      "claude": {
+        "pass": 12,
+        "fail": 45,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "G6: two workers racing for one job cannot both get it",
+          "G6: racing claims on two jobs get different jobs and tokens",
+          "G6: a token is never issued twice for a job, even across requeue and compaction",
+          "G8: an old token cannot touch the job",
+          "G7: a heartbeat is seen by the process that runs the reaper",
+          "G7: a reaper that waited for the lock does not reap a lease renewed meanwhile",
+          "G10: a key racing between two processes creates one job",
+          "G10: a key is remembered after its job has been pruned and the log compacted",
+          "G9: a retry keeps its due time across a restart",
+          "G9: every process sees the same due time",
+          "G9: attempts and backoff carry through compaction, so maxAttempts holds",
+          "G11: compaction changes no job field",
+          "G13: a process whose offset lies inside a larger new log follows the compaction",
+          "G5: a record far larger than one read chunk",
+          "G5: a record over the format limit is refused and harms nothing",
+          "G5: a log of many megabytes reopens whole, and ids are not reused",
+          "G14: when the live state is larger than the threshold, writes do not each compact",
+          "G3: an incomplete tail is cut off before the next write goes after it",
+          "complete cut off at wal.mid-append (kill)",
+          "enqueue cut off mid-append does not harm later writes (kill)",
+          "compaction killed at compact.after-tmp-write loses nothing and can run again (kill)",
+          "compaction killed at compact.before-rename loses nothing and can run again (kill)",
+          "compaction killed at compact.after-rename loses nothing and can run again (kill)",
+          "complete cut off at wal.after-fsync (power loss)",
+          "compaction killed at compact.after-tmp-write loses nothing and can run again (power loss)",
+          "compaction killed at compact.before-rename loses nothing and can run again (power loss)",
+          "compaction killed at compact.after-rename loses nothing and can run again (power loss)",
+          "a log whose creation is cut off by a power loss still opens",
+          "a compaction that keeps failing does not poison the next one",
+          "a failed compaction cleans up its temp file",
+          "a running `walq tail` does not stop compaction, and keeps following across it",
+          "complete returns a receipt, and a repeat returns the same one without writing",
+          "complete with another token is stale, and a pruned job is unknown",
+          "a lease past its deadline can still commit until someone acts on it",
+          "getResult",
+          "completions are numbered in commit order and survive restart, compaction and pruning",
+          "reclaimWorker releases a dead worker at once and counts the attempt",
+          "reclaimWorker sends a job whose attempts ran out to dead",
+          "a log with release records replays the same in another process, and after compaction",
+          "old logs keep working: unknown records are ignored and old snapshots load",
+          "a worker keeps trying to record a finished job until it is recorded",
+          "a result that cannot be recorded fails the attempt instead of hanging the worker",
+          "a worker does not start another job while it still holds a finished one",
+          "a pool reclaims a killed worker at once instead of waiting for the lease",
+          "a worker killed after complete is durable does not run again"
+        ]
+      },
+      "opencode": {
+        "pass": 10,
+        "fail": 48,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "two claimers racing for one job cannot both get it",
+          "a racing claim on the only job leaves one winner and nothing for the other",
+          "a heartbeat is seen by another process, so its reaper leaves the job alone",
+          "a reaper that chose a job before its heartbeat landed does not reap it",
+          "a reaper that chose a job before it committed does not bring it back",
+          "two reapers do not return the same lease twice",
+          "a key used by two processes at once makes one job",
+          "an old token has no power over a job that has been claimed again",
+          "tokens are never reused, across requeue, restart and compaction",
+          "a retry keeps its due time across restarts and in every process",
+          "attempts and backoff carry through compaction and restarts, so maxAttempts holds",
+          "compaction changes no field of any job",
+          "priority survives compaction",
+          "a key outlives its job and many compactions",
+          "a key is forgotten once its time to live has passed, measured from the enqueue",
+          "cancelled and dead jobs are pruned past retention, but their keys are kept",
+          "a leftover temp file from a killed compaction does not stop the next one",
+          "compaction blocked by an open handle fails cleanly, and works once it is released",
+          "another process follows a compaction even when the new log is bigger than the old one",
+          "automatic compaction stays cheap when the live state is bigger than the threshold",
+          "a tail of zeros is dropped, and later writes survive another reopen",
+          "a tail of random bytes is dropped, and later writes survive another reopen",
+          "a tail of a frame with a wrong checksum is dropped, and later writes survive another reopen",
+          "a tail of half a frame is dropped, and later writes survive another reopen",
+          "a tail of a frame header with an absurd length is dropped, and later writes survive another reopen",
+          "a corrupted length field that swallows later records is damage, not a tail",
+          "records and logs bigger than the read chunk are read in full",
+          "a record over the format limit is refused and does not damage the log",
+          "power loss while a log is first created leaves something that opens",
+          "power loss at compact.after-tmp-write loses nothing, and compaction works afterwards",
+          "power loss at compact.before-rename loses nothing, and compaction works afterwards",
+          "power loss at compact.after-rename loses nothing, and compaction works afterwards",
+          "a worker lost at wal.after-fsync\\#complete has committed",
+          "an acknowledged complete is durable even if the process dies right after",
+          "the first commit returns a receipt, a repeat returns the same one and writes nothing",
+          "a lease past its deadline can still commit until someone acts on it",
+          "a commit that was written is never run again, however the worker learns of it",
+          "getResult says what is known about a job",
+          "completions come in commit order, and numbering survives restarts, compaction and pruning",
+          "reclaimWorker releases a dead worker leases at once, with no backoff",
+          "reclaiming a worker whose attempts have run out kills the job",
+          "a release survives compaction and restart",
+          "a worker whose commit hits a busy queue keeps trying until it is recorded",
+          "a commit that was written but not confirmed shows up as already committed",
+          "a fenced worker stops, reports job-fenced, and its result is discarded",
+          "a killed worker is reclaimed at once, not when its long lease runs out",
+          "a worker killed after committing does not make the job run again",
+          "a pool only reclaims its own dead workers, even on a shared directory"
+        ]
+      },
+      "codex": {
+        "pass": 9,
+        "fail": 33,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "a torn tail does not poison records written after it, even with the file left as found",
+          "a log ending in zeros (a size change that outran the data) opens",
+          "a large log with a cut tail opens and reads every record",
+          "a record bigger than the read chunk can be written and read back",
+          "a log shrunk by hand while a process holds it makes that process start over",
+          "a second process follows a compaction whose new log is bigger than the old one",
+          "a crash at compact.after-tmp-write leaves a queue that works and can compact again",
+          "a crash at compact.before-rename leaves a queue that works and can compact again",
+          "a crash at compact.after-rename leaves a queue that works and can compact again",
+          "after a power cut right after compaction the log is not empty",
+          "a log created and cut right away has a header",
+          "compaction works while another process holds the log open",
+          "a leftover compaction temp file does not block compaction",
+          "retry times, attempts and tokens survive restart and compaction",
+          "a retry delay is the same in every process",
+          "compaction keeps priority, attempts, fence and lease",
+          "requeueing a dead job never reissues a token",
+          "a key is still remembered after its job was pruned and the log compacted",
+          "two processes cannot both claim the same job",
+          "a reaper that raced a heartbeat does not take a live worker's job",
+          "a reaper that decided on stale state does not expire a lease renewed meanwhile",
+          "a token from a finished attempt cannot touch the next one",
+          "a heartbeat is seen by other processes",
+          "automatic compaction does not run on every write when the state is big",
+          "an oversized record is refused before it touches the log",
+          "replaying a log gives the same state whatever the clock says now",
+          "complete returns a receipt and a repeat is already-committed",
+          "an expired lease can still commit until someone acts on it",
+          "getResult and completions follow the RFC",
+          "reclaimWorker frees only that worker's jobs, at once, without backoff",
+          "reclaimWorker sends a job out of attempts to dead",
+          "a crash at wal.after-fsync while completing does not",
+          "a compaction killed while a completion is the newest record loses nothing"
+        ]
+      }
+    },
+    "reference": {
+      "claude": {
+        "pass": 0,
+        "fail": 0,
+        "cancelled": 0,
+        "timedOut": true,
+        "failing": [
+          "G5: a record over the format limit is refused and harms nothing",
+          "a failed compaction cleans up its temp file",
+          "a running `walq tail` does not stop compaction, and keeps following across it",
+          "a worker keeps trying to record a finished job until it is recorded",
+          "a result that cannot be recorded fails the attempt instead of hanging the worker"
+        ]
+      },
+      "opencode": {
+        "pass": 51,
+        "fail": 7,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "compaction blocked by an open handle fails cleanly, and works once it is released",
+          "automatic compaction that keeps failing does not retry on every write",
+          "a record over the format limit is refused and does not damage the log",
+          "an acknowledged heartbeat does not need to be synced, but never corrupts the log",
+          "a commit that was written but not confirmed shows up as already committed",
+          "a killed worker is reclaimed at once, not when its long lease runs out",
+          "a pool only reclaims its own dead workers, even on a shared directory"
+        ]
+      },
+      "codex": {
+        "pass": 39,
+        "fail": 3,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "compaction works while another process holds the log open",
+          "a failed automatic compaction is retried later and reported",
+          "an oversized record is refused before it touches the log"
+        ]
+      }
+    },
+    "claude": {
+      "claude": {
+        "pass": 57,
+        "fail": 0,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": []
+      },
+      "opencode": {
+        "pass": 50,
+        "fail": 8,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "cancelled and dead jobs are pruned past retention, but their keys are kept",
+          "automatic compaction that keeps failing does not retry on every write",
+          "a tail of zeros is dropped, and later writes survive another reopen",
+          "a tail of random bytes is dropped, and later writes survive another reopen",
+          "a tail of a frame header with an absurd length is dropped, and later writes survive another reopen",
+          "a corrupted length field that swallows later records is damage, not a tail",
+          "an acknowledged heartbeat does not need to be synced, but never corrupts the log",
+          "a killed worker is reclaimed at once, not when its long lease runs out"
+        ]
+      },
+      "codex": {
+        "pass": 40,
+        "fail": 2,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "a log ending in zeros (a size change that outran the data) opens",
+          "compaction works while another process holds the log open"
+        ]
+      }
+    },
+    "opencode": {
+      "claude": {
+        "pass": 0,
+        "fail": 0,
+        "cancelled": 0,
+        "timedOut": true,
+        "failing": [
+          "a result that cannot be recorded fails the attempt instead of hanging the worker"
+        ]
+      },
+      "opencode": {
+        "pass": 58,
+        "fail": 0,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": []
+      },
+      "codex": {
+        "pass": 38,
+        "fail": 4,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "compaction works while another process holds the log open",
+          "a reaper that raced a heartbeat does not take a live worker's job",
+          "a reaper that decided on stale state does not expire a lease renewed meanwhile",
+          "a heartbeat is seen by other processes"
+        ]
+      }
+    },
+    "codex": {
+      "claude": {
+        "pass": 0,
+        "fail": 0,
+        "cancelled": 0,
+        "timedOut": true,
+        "failing": [
+          "a worker keeps trying to record a finished job until it is recorded",
+          "a result that cannot be recorded fails the attempt instead of hanging the worker"
+        ]
+      },
+      "opencode": {
+        "pass": 49,
+        "fail": 9,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": [
+          "cancelled and dead jobs are pruned past retention, but their keys are kept",
+          "compaction blocked by an open handle fails cleanly, and works once it is released",
+          "a tail of random bytes is dropped, and later writes survive another reopen",
+          "a tail of a frame header with an absurd length is dropped, and later writes survive another reopen",
+          "a corrupted length field that swallows later records is damage, not a tail",
+          "an acknowledged heartbeat does not need to be synced, but never corrupts the log",
+          "a worker whose commit hits a busy queue keeps trying until it is recorded",
+          "a commit that was written but not confirmed shows up as already committed",
+          "a killed worker is reclaimed at once, not when its long lease runs out"
+        ]
+      },
+      "codex": {
+        "pass": 42,
+        "fail": 0,
+        "cancelled": 0,
+        "timedOut": false,
+        "failing": []
+      }
+    }
+  },
+  "diffs": {
+    "claude": {
+      "added": 451,
+      "removed": 131,
+      "addedInSrc": 394,
+      "addedInDocs": 44,
+      "trackedFilesChanged": [
+        "CHANGELOG.md",
+        "docs/api.md",
+        "docs/architecture.md",
+        "docs/compaction.md",
+        "docs/leases-and-retries.md",
+        "docs/operations.md",
+        "docs/rfc-007-exactly-once-completion.md",
+        "docs/wal-format.md",
+        "package.json",
+        "src/backoff.mjs",
+        "src/cli.mjs",
+        "src/compactor.mjs",
+        "src/frame.mjs",
+        "src/queue.mjs",
+        "src/records.mjs",
+        "src/snapshot.mjs",
+        "src/state.mjs",
+        "src/store.mjs",
+        "src/wal.mjs",
+        "src/worker/pool.mjs",
+        "src/worker/runner.mjs"
+      ],
+      "testFilesCreated": [
+        "test/helpers/crash-child.mjs",
+        "test/crash-recovery.mjs",
+        "test/consistency.mjs",
+        "test/rfc-007.mjs",
+        "test/operators.mjs"
+      ]
+    },
+    "opencode": {
+      "added": 489,
+      "removed": 129,
+      "addedInSrc": 434,
+      "addedInDocs": 41,
+      "trackedFilesChanged": [
+        "CHANGELOG.md",
+        "README.md",
+        "docs/api.md",
+        "docs/architecture.md",
+        "docs/compaction.md",
+        "docs/leases-and-retries.md",
+        "docs/operations.md",
+        "docs/rfc-007-exactly-once-completion.md",
+        "docs/wal-format.md",
+        "package.json",
+        "src/cli.mjs",
+        "src/compactor.mjs",
+        "src/frame.mjs",
+        "src/inspect.mjs",
+        "src/queue.mjs",
+        "src/records.mjs",
+        "src/retention.mjs",
+        "src/snapshot.mjs",
+        "src/state.mjs",
+        "src/store.mjs",
+        "src/wal.mjs",
+        "src/worker/pool.mjs",
+        "src/worker/runner.mjs"
+      ],
+      "testFilesCreated": [
+        "test/helpers/crash-child.mjs",
+        "test/crash-recovery.mjs",
+        "test/consistency.mjs",
+        "test/rfc-007.mjs"
+      ]
+    },
+    "codex": {
+      "added": 497,
+      "removed": 128,
+      "addedInSrc": 461,
+      "addedInDocs": 27,
+      "trackedFilesChanged": [
+        "CHANGELOG.md",
+        "docs/api.md",
+        "docs/compaction.md",
+        "docs/leases-and-retries.md",
+        "docs/operations.md",
+        "docs/rfc-007-exactly-once-completion.md",
+        "docs/wal-format.md",
+        "src/cli.mjs",
+        "src/compactor.mjs",
+        "src/frame.mjs",
+        "src/inspect.mjs",
+        "src/queue.mjs",
+        "src/records.mjs",
+        "src/snapshot.mjs",
+        "src/state.mjs",
+        "src/store.mjs",
+        "src/wal.mjs",
+        "src/worker/pool.mjs",
+        "src/worker/runner.mjs"
+      ],
+      "testFilesCreated": [
+        "test/crash-recovery.mjs"
+      ]
+    }
+  }
+}

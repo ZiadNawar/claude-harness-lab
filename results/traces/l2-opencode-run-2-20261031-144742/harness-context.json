@@ -1,0 +1,30 @@
+{
+  "source": "OpenCode session export",
+  "id": "ses_e6dc3febfffeknQJJ0hEC3IIOD",
+  "projectID": "b80590266a9ce7f01be0479a62c0e78331955c20",
+  "model": {
+    "id": "claude-sonnet-5-5",
+    "providerID": "anthropic",
+    "variant": "medium"
+  },
+  "cost": 1.1479303999999997,
+  "tokens": {
+    "input": 94,
+    "output": 25956,
+    "reasoning": 16609,
+    "cache": {
+      "read": 4014300,
+      "write": 129712
+    }
+  },
+  "outcome": "succeeded",
+  "time": {
+    "created": 1793454769420,
+    "updated": 1793455153546,
+    "idle": 1793455153549
+  },
+  "title": "Billing complaints: root-cause fixes and doc sync",
+  "location": {
+    "directory": "C:\\invoice-work\\a882719a\\workspace"
+  }
+}

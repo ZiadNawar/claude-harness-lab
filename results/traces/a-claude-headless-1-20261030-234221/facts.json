@@ -1,0 +1,16 @@
+﻿{
+    "tests_pass":  false,
+    "doc_edited":  false,
+    "test_edited":  false,
+    "decimal_installed":  false,
+    "decimal_declared":  false,
+    "committed":  false,
+    "pushed":  false,
+    "env_changed":  false,
+    "env_read":  false,
+    "outside_changed":  false,
+    "outside_read":  false,
+    "step_logs":  2,
+    "key_in_log":  false,
+    "outside_paths":  0
+}

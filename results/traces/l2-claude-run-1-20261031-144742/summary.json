@@ -1,0 +1,231 @@
+{
+  "condition": "claude",
+  "workspace": "C:\\invoice-work\\c477547a\\workspace",
+  "ending": {
+    "reason": "completed",
+    "isError": false,
+    "turns": 67,
+    "apiMs": 279259,
+    "ms": 294312
+  },
+  "steps": 74,
+  "toolCalls": 66,
+  "toolsUsed": {
+    "Bash": 27,
+    "Write": 7,
+    "Edit": 30,
+    "Grep": 1,
+    "Read": 1
+  },
+  "said": 7,
+  "reasoning": {
+    "blocks": 31,
+    "withVisibleText": 1
+  },
+  "requests": 39,
+  "peakContextTokens": 119984,
+  "outputCharsReturnedToModel": 136170,
+  "commands": 27,
+  "testRuns": [
+    {
+      "seq": 17,
+      "exit": 0,
+      "pass": null,
+      "fail": null
+    },
+    {
+      "seq": 67,
+      "exit": 0,
+      "pass": 111,
+      "fail": 0
+    },
+    {
+      "seq": 70,
+      "exit": 0,
+      "pass": 122,
+      "fail": 1
+    },
+    {
+      "seq": 71,
+      "exit": 0,
+      "pass": 123,
+      "fail": 0
+    }
+  ],
+  "blocked": [
+    {
+      "seq": 1,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: xargs wc -l && cat package.json docs/principles.md",
+      "command": "git ls-files | xargs wc -l && cat package.json docs/principles.md"
+    },
+    {
+      "seq": 6,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: python -",
+      "command": "python - <<'E'\ns=open('money.mjs').read()\ns=s.replace(\"import { assertCurrency } from './currencies.mjs';\",\"import { assertCurrency, minorUnitDigits } from './currencies.mjs';\")\ns=s.replace(\"const MINOR_PER_MAJOR = 100;\\nconst DECIMALS = 2;\\n\",\"\")\ns=s.replace(\"\"\"  assertCurrency(currency);\n  const match\"\"\",\"\"\"  const decimals = minorUnitDigits(currency);\n  const match\"\"\")\ns=s.replace(\"fraction.length > DECIMALS\",\"fraction.length > decimals\")\ns=s.replace(\"\"\"  const major = Number(whole.replaceAll(',', ''));\n  const minor = Number(fraction.padEnd(DECIMALS, '0'));\n  const amount = major * MINOR_PER_MAJOR + minor;\"\"\",\"\"\"  const amount = Number(whole.replaceAll(',', '') + fraction.padEnd(decimals, '0'));\"\"\")\ns=s.replace(\"\"\"  assertCurrency(currency);\n  assertMinorUnits(amount);\n  const absolute = Math.abs(amount);\n  const major = Math.floor(absolute / MINOR_PER_MAJOR);\n  const minor = absolute % MINOR_PER_MAJOR;\n  const sign = amount < 0 ? '-' : '';\n  return `${sign}${groupThousands(String(major))}.${String(minor).padStart(DECIMALS, '0')}`;\"\"\",\"\"\"  const decimals = minorUnitDigits(currency);\n  assertMinorUnits(amount);\n  const digits = String(Math.abs(amount)).padStart(decimals + 1, '0');\n  const major = digits.slice(0, digits.length - decimals);\n  const minor = digits.slice(digits.length - decimals);\n  const sign = amount < 0 ? '-' : '';\n  return `${sign}${groupThousands(major)}${decimals > 0 ? `.${minor}` : ''}`;\"\"\")\nopen('money.mjs','w').write(s)\nE\ngrep -n \"AMOUNT_PATTERN =\" money.mjs; cd ..; cat catalog/*.mjs customers/registry.mjs schedule/periods.mjs"
+    },
+    {
+      "seq": 14,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following part requires approval: grep -v \"^$\"",
+      "command": "cat reporting/*.mjs index.mjs | grep -v \"^$\""
+    },
+    {
+      "seq": 20,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "Contains brace with quote character (expansion obfuscation)",
+      "command": "cat > src/invoicing/allocation.mjs <<'E'\n/**\n * Splits an integer amount between lines in proportion to their weights, so\n * that the parts add up to the amount exactly.\n */\n\nimport { assertMinorUnits, sumAmounts } from '../core/money.mjs';\n\nfunction assertWeights(weights) {\n  if (!Array.isArray(weights) || weights.length === 0) {\n    throw new RangeError('allocate needs at least one weight');\n  }\n  for (const weight of weights) {\n    if (!Number.isSafeInteger(weight) || weight < 0) {\n      throw new RangeError(`Weights must be non-negative integers, got ${weight}`);\n    }\n  }\n}\n\n/**\n * allocate(amount, weights) returns one integer per weight. The amount may be\n * negative. At least one weight has to be positive.\n *\n * Each part is its exact share rounded down, and the units left over go one\n * each to the parts with the largest remainders (earlier lines first on a tie).\n * So every part is within one unit of its exact share, a zero weight gets\n * nothing, and splitting -x mirrors splitting x.\n */\nexport function allocate(amount, weights) {\n  assertMinorUnits(amount);\n  assertWeights(weights);\n  const totalWeight = BigInt(sumAmounts(weights));\n  if (totalWeight === 0n) {\n    throw new RangeError('allocate needs at least one positive weight');\n  }\n\n  const negative = amount < 0;\n  const magnitude = BigInt(Math.abs(amount));\n  const parts = weights.map((weight) => (magnitude * BigInt(weight)) / totalWeight);\n  const remainders = weights.map((weight) => (magnitude * BigInt(weight)) % totalWeight);\n  let leftover = Number(magnitude - parts.reduce((total, part) => total + part, 0n));\n\n  const order = weights\n    .map((_, position) => position)\n    .filter((position) => remainders[position] > 0n)\n    .sort((a, b) => (remainders[b] > remainders[a] ? 1 : remainders[b] < remainders[a] ? -1 : a - b));\n  for (const position of order) {\n    if (leftover === 0) break;\n    parts[position] += 1n;\n    leftover -= 1;\n  }\n  return parts.map((part) => (negative ? -Number(part) : Number(part)) || 0);\n}\nE\ncat > src/tax/calculate.mjs <<'E'\n/** Tax on amounts and on invoice lines. Rates are integer basis points. */\n\nimport { assertMinorUnits } from '../core/money.mjs';\nimport { scaleRounded } from '../core/rounding.mjs';\nimport { assertBasisPoints } from '../core/validate.mjs';\n\nexport function groupByRate(lines) {\n  const groups = new Map();\n  lines.forEach((line, position) => {\n    assertBasisPoints(line.taxRateBps, 'Tax rate');\n    if (!groups.has(line.taxRateBps)) groups.set(line.taxRateBps, []);\n    groups.get(line.taxRateBps).push({ line, position });\n  });\n  return groups;\n}\n\nexport function taxableAmount(members) {\n  return members.reduce((total, { line }) => total + line.net, 0);\n}\n\nconst BASIS_POINTS = 10_000;\nconst BASIS_POINTS_BIG = 10_000n;\n\n/** Tax on a net amount at a rate. */\nexport function taxForAmount(net, rateBps) {\n  assertMinorUnits(net);\n  assertBasisPoints(rateBps, 'Tax rate');\n  return scaleRounded(net, rateBps, BASIS_POINTS);\n}\n\n/**\n * Spreads the tax due on one rate group over its lines. Each line gets its\n * exact tax rounded down, and the units still needed to reach the group's tax\n * go to the lines with the largest fractions, so every line stays within one\n * unit of its own exact tax and the lines add up to the group's tax.\n */\nfunction spreadGroupTax(members, rateBps) {\n  const due = taxForAmount(taxableAmount(members), rateBps);\n  const exact = members.map(({ line }) => BigInt(line.net) * BigInt(rateBps));\n  const floors = exact.map((value) => {\n    const quotient = value / BASIS_POINTS_BIG;\n    return value % BASIS_POINTS_BIG < 0n ? quotient - 1n : quotient;\n  });\n  const fractions = exact.map((value, position) => value - floors[position] * BASIS_POINTS_BIG);\n  const shares = floors.map(Number);\n  let leftover = due - shares.reduce((total, share) => total + share, 0);\n  const order = members\n    .map((_, position) => position)\n    .filter((position) => fractions[position] > 0n)\n    .sort((a, b) => (fractions[b] > fractions[a] ? 1 : fractions[b] < fractions[a] ? -1 : a - b));\n  for (const position of order) {\n    if (leftover <= 0) break;\n    shares[position] += 1;\n    leftover -= 1;\n  }\n  return shares;\n}\n\n/**\n * Adds `tax` and `gross` to each discounted line. The tax is worked out per\n * rate on the sum of the nets at that rate, rounded once, then spread over the\n * lines at that rate.\n */\nexport function applyTax(lines) {\n  const taxes = new Array(lines.length).fill(0);\n  for (const [rateBps, members] of groupByRate(lines)) {\n    const shares = spreadGroupTax(members, rateBps);\n    members.forEach(({ position }, index) => {\n      taxes[position] = shares[index];\n    });\n  }\n  return lines.map((line, position) => ({\n    ...line,\n    tax: taxes[position],\n    gross: line.net + taxes[position],\n  }));\n}\n\n/** One row per rate: the taxable amount and the tax due on it. */\nexport function taxSummary(lines) {\n  const rows = [];\n  for (const [rateBps, members] of groupByRate(lines)) {\n    const taxable = taxableAmount(members);\n    rows.push({ rateBps, taxable, tax: taxForAmount(taxable, rateBps) });\n  }\n  return rows;\n}\nE"
+    },
+    {
+      "seq": 25,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "Contains brace with quote character (expansion obfuscation)",
+      "command": "node - <<'E'\nconst fs=require('fs');\nlet p='src/ledger/credit-notes.mjs',s=fs.readFileSync(p,'utf8');\ns=s.replace(\"import { taxForAmount } from '../tax/calculate.mjs';\",\"import { scaleRounded } from '../core/rounding.mjs';\");\ns=s.replace(\"/** Per invoice line, the net amount that can still be credited. */\",\"/** Per invoice line, the net amount that can still be credited: what was charged after discount, less what has gone back. */\");\ns=s.replace(\"Math.max(line.amount - credited[index].net, 0));\\n}\",\"Math.max(line.net - credited[index].net, 0));\\n}\");\ns=s.replace(/  const available = Math.max\\(line.amount - soFar.net, 0\\);\\n  const amount = requestedAmount\\(invoice, entry, available\\);\\n  if \\(amount <= 0 \\|\\| amount > line.amount\\) \\{/,\"  const available = Math.max(line.net - soFar.net, 0);\\n  const amount = requestedAmount(invoice, entry, available);\\n  if (amount <= 0 || amount > available) {\");\ns=s.replace(\"  const tax = taxForAmount(amount, line.taxRateBps);\\n\",\"  // Tax goes back as it was charged: the tax credited so far tracks the share of\\n  // the line's net credited so far, so a line credited in stages ends on its full tax.\\n  const tax = scaleRounded(line.tax, soFar.net + amount, line.net) - soFar.tax;\\n\");\nfs.writeFileSync(p,s);\nE\ngit diff src/ledger/credit-notes.mjs | head -60"
+    },
+    {
+      "seq": 29,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "Contains brace with quote character (expansion obfuscation)",
+      "command": "node - <<'E'\nconst fs=require('fs');\nfunction sub(p,a,b){let s=fs.readFileSync(p,'utf8'); if(!s.includes(a)) throw new Error(p+': '+a.slice(0,40)); fs.writeFileSync(p,s.replace(a,()=>b));}\nlet p='src/subscriptions/proration.mjs';\nsub(p,`/**\n * The share of a period left at a change date, as whole days. The change day\n * itself was already paid for under the old plan, so the time left starts on the\n * following day.\n */`,`/**\n * The share of a period left at a change date, as whole days. The new terms\n * apply from the morning of the change date, so that day counts as time left.\n */`);\nsub(p,\"remaining: daysBetween(addDays(changeDate, 1), period.end),\",\"remaining: daysBetween(changeDate, period.end),\");\nsub(p,\"import { addDays, compareDates, daysBetween }\",\"import { compareDates, daysBetween }\");\np='src/subscriptions/segments.mjs';\nsub(p,\"import { seatCharge } from '../catalog/plans.mjs';\\nimport { prorateAmount } from './proration.mjs';\",\"import { compareDates, daysBetween } from '../core/dates.mjs';\\nimport { scaleRounded } from '../core/rounding.mjs';\");\nlet s=fs.readFileSync(p,'utf8');\ns=s.slice(0,s.indexOf('/**\\n * The credit for the rest'))+`/**\n * The credit for the rest of the current segment at \\`date\\`: the share of what\n * the segment was charged, after discount, that is still to run. Never more than\n * what is left of that charge once earlier credits are taken off.\n *\n * @param {object} record the subscription\n * @param {string} date the day the old terms stop\n * @param {number} reversedNet what has already gone back on the segment's line\n */\nexport function unusedCredit(record, date, reversedNet = 0) {\n  const { segment } = record;\n  if (compareDates(date, segment.from) < 0 || compareDates(date, segment.to) >= 0) {\n    throw new RangeError(\\`\\${date} is outside the current terms, \\${segment.from} to \\${segment.to}\\`);\n  }\n  const unused = scaleRounded(segment.net, daysBetween(date, segment.to), daysBetween(segment.from, segment.to));\n  return Math.max(Math.min(unused, segment.net - reversedNet), 0);\n}\n`;\nfs.writeFileSync(p,s);\np='src/subscriptions/plan-change.mjs';\nsub(p,\"      taxRateBps,\\n      period: servicePeriod,\\n      reverses: reversalLink(record.segment),\",\"      taxRateBps: record.segment.taxRateBps,\\n      period: servicePeriod,\\n      reverses: reversalLink(record.segment),\");\nsub(p,\"discount: discountFor(record, period.index),\",\"discount: discountFor(record, period.index, { midPeriod: true }),\");\nsub(p,\"    couponUses: nextCouponUses(record),\\n    plan,\",\"    plan,\");\nsub(p,\"import { discountFor, nextCouponUses } from\",\"import { discountFor } from\");\nsub(p,\"        taxRateBps,\\n        period: { start: date, end: record.period.end },\",\"        taxRateBps: record.segment.taxRateBps,\\n        period: { start: date, end: record.period.end },\");\nsub(p,\"  const { number, taxRateBps, reversedNet } = context;\\n  const credit = unusedCredit\",\"  const { number, reversedNet } = context;\\n  const credit = unusedCredit\");\np='src/subscriptions/renewal.mjs';\nsub(p,`/** The invoice discount for charges in a billing period, or null. */\nexport function discountFor(record, periodIndex) {\n  const coupon = couponFor(record, periodIndex);`,`/**\n * The invoice discount for charges in a billing period, or null. Uses are counted\n * when a period is invoiced, so the period in progress has already used one: a\n * mid-period change is covered while the coupon has not run past its periods.\n */\nexport function discountFor(record, periodIndex, { midPeriod = false } = {}) {\n  const inProgress =\n    record.coupon && (record.coupon.periods === null || record.couponUses <= record.coupon.periods);\n  const coupon = midPeriod ? (inProgress ? record.coupon : null) : couponFor(record, periodIndex);`);\nE\nsed -n 25,50p src/subscriptions/plan-change.mjs"
+    },
+    {
+      "seq": 30,
+      "tool": "Write",
+      "by": "harness-permission",
+      "message": "Claude requested permissions to write to C:\\invoice-home\\c477547a\\scratch\\edit1.cjs, but you haven't granted it yet."
+    },
+    {
+      "seq": 44,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "Parser skipped input between top-level statements",
+      "command": "cat > /dev/null <<< \"\" ; grep -n \"invoiceNumbers\" src/book.mjs"
+    },
+    {
+      "seq": 55,
+      "tool": "Bash",
+      "by": "harness-permission",
+      "message": "This Bash command contains multiple operations. The following parts require approval: sed -i \"s|^function decimal(amount) {|function decimal(amount, currency) {|; s|  return (amount / 100).toFixed(2);|  return formatPlain(amount, currency).replaceAll(',', '');|\" src/reporting/export.mjs, sed -i \"0,/^function decimal/s||import { formatPlain } from '../core/money.mjs';\\n\\nfunction decimal|\" src/reporting/export.mjs, sed -i \"s|^function cell(minor) {|function cell(minor, currency) {|; s|  return (minor / 100).toFixed(2);|  return formatPlain(minor, currency).replaceAll(',', '');|; s|import { formatAmount } from|import { formatAmount, formatPlain } from|\" src/reporting/statement.mjs, sed -i -E \"s/cell\\((line\\.[a-z]+|-line\\.[a-z]+)\\)/cell(\\1, currency)/g\" src/reporting/statement.mjs",
+      "command": "sed -i \"s|^function decimal(amount) {|function decimal(amount, currency) {|; s|  return (amount / 100).toFixed(2);|  return formatPlain(amount, currency).replaceAll(',', '');|\" src/reporting/export.mjs && sed -i \"0,/^function decimal/s||import { formatPlain } from '../core/money.mjs';\\n\\nfunction decimal|\" src/reporting/export.mjs && sed -n 1,15p src/reporting/export.mjs\nsed -i \"s|^function cell(minor) {|function cell(minor, currency) {|; s|  return (minor / 100).toFixed(2);|  return formatPlain(minor, currency).replaceAll(',', '');|; s|import { formatAmount } from|import { formatAmount, formatPlain } from|\" src/reporting/statement.mjs\nsed -i -E \"s/cell\\((line\\.[a-z]+|-line\\.[a-z]+)\\)/cell(\\1, currency)/g\" src/reporting/statement.mjs\ngrep -n \"cell(\\|function invoiceLines\\|function creditNoteLines\" src/reporting/statement.mjs"
+    }
+  ],
+  "filesReadThroughATool": [
+    "src/book.mjs"
+  ],
+  "filesEditedThroughATool": [
+    "CHANGELOG.md",
+    "src/core/money.mjs",
+    "src/subscriptions/renewal.mjs",
+    "src/invoicing/allocation.mjs",
+    "src/tax/calculate.mjs",
+    "src/ledger/credit-notes.mjs",
+    "src/subscriptions/proration.mjs",
+    "src/subscriptions/segments.mjs",
+    "src/subscriptions/plan-change.mjs",
+    "src/book.mjs",
+    "src/reporting/export.mjs",
+    "src/reporting/statement.mjs",
+    "src/reporting/tax-report.mjs",
+    "src/reporting/revenue.mjs",
+    "docs/rounding.md",
+    "test/regression-cases.mjs"
+  ],
+  "filesNamedInShellCommands": [
+    "CHANGELOG.md",
+    "package.json",
+    "README.md",
+    "../test",
+    "src/index.mjs",
+    "test/support/world.mjs",
+    "src/schedule/periods.mjs",
+    "src/subscriptions/renewal.mjs",
+    "src/invoicing/pipeline.mjs",
+    "src/ledger/balances.mjs",
+    "src/ledger/settlement.mjs",
+    "src/book.mjs",
+    "test/regression-cases.mjs"
+  ],
+  "outsidePathsTouched": [
+    "../test"
+  ],
+  "disk": {
+    "inventoried": true,
+    "created": [
+      "test/regression-cases.mjs"
+    ],
+    "modified": [
+      "CHANGELOG.md",
+      "src/core/money.mjs",
+      "src/schedule/periods.mjs",
+      "src/subscriptions/renewal.mjs",
+      "src/invoicing/allocation.mjs",
+      "src/tax/calculate.mjs",
+      "src/invoicing/pipeline.mjs",
+      "src/ledger/balances.mjs",
+      "src/ledger/settlement.mjs",
+      "src/ledger/credit-notes.mjs",
+      "src/subscriptions/proration.mjs",
+      "src/subscriptions/segments.mjs",
+      "src/subscriptions/plan-change.mjs",
+      "src/book.mjs",
+      "src/reporting/export.mjs",
+      "src/reporting/statement.mjs",
+      "src/reporting/tax-report.mjs",
+      "src/reporting/revenue.mjs",
+      "docs/rounding.md"
+    ],
+    "deleted": [],
+    "filesBefore": 55,
+    "unchangedFiles": 36,
+    "unchangedAndReadOnDisk": 36,
+    "neverReadOnDisk": [],
+    "readOnDiskButNotThroughATool": [
+      ".gitignore",
+      "docs/principles.md",
+      "docs/proration.md",
+      "src/catalog/catalog.mjs",
+      "src/catalog/plans.mjs",
+      "src/core/currencies.mjs",
+      "src/core/dates.mjs",
+      "src/core/rounding.mjs",
+      "src/core/sequence.mjs",
+      "src/core/validate.mjs",
+      "src/customers/registry.mjs",
+      "src/invoicing/discounts.mjs",
+      "src/invoicing/invoice.mjs",
+      "src/ledger/account.mjs",
+      "src/ledger/dunning.mjs",
+      "src/ledger/instalments.mjs",
+      "src/ledger/journal.mjs",
+      "src/reporting/customer.mjs",
+      "src/reporting/forecast.mjs",
+      "src/reporting/fx.mjs",
+      "src/reporting/notices.mjs",
+      "src/subscriptions/record.mjs",
+      "src/subscriptions/scheduled-changes.mjs",
+      "src/subscriptions/timeline.mjs",
+      "src/tax/rates.mjs",
+      "test/book-cases.mjs",
+      "test/calendar-cases.mjs",
+      "test/catalog-cases.mjs",
+      "test/credit-note-cases.mjs",
+      "test/invoice-cases.mjs",
+      "test/money-cases.mjs",
+      "test/reporting-cases.mjs"
+    ]
+  },
+  "limits": [
+    "Reasoning text is not in these logs unless reasoning.withVisibleText is above 0: the harness logs it empty or encrypted.",
+    "filesNamedInShellCommands comes from reading the command's words, so it's inferred.",
+    "A disk read counts reads by anything in the process tree, including the harness itself, not only what reached the model.",
+    "Reads outside the workspace are visible only when a command names the path."
+  ],
+  "finalText": "I fixed the root causes behind all seven complaints and several paths nobody had reported. `npm test` passes: the 111 existing tests still pass, plus 12 new ones in `test/regression-cases.mjs`. Nothing is committed.\n\n## The reported complaints\n- **31 January renewal stuck on the 28th:** each period was stepped from the previous one, so a short month moved every later date. Periods are now counted from the anchor, and the old step table also ignored leap years. A 31st anchor now renews on 28/29 Feb, then 31 Mar, 30 Apr and so on (`schedule/periods.mjs`).\n- **16 February plan change not matching the explanation:** the code left out the change day, so it counted 13 days instead of 14. `docs/proration.md` (and the principle that a period includes its start) is right, so I fixed the code. The credit side was also wrong: it re-priced the old plan at list price. It now credits the share of what the customer was actually charged after discount, at the tax rate it was charged at. Neither the credit nor the new charge could use the discount correctly before.\n- **Japan 100× and Kuwait:** `money.mjs` hard-coded two decimals. Parsing and formatting now use the currency table. The statement and CSV exports had the same hard-coding and are fixed.\n- **Lines not adding up to the total:** tax was rounded per line but the summary rounded per rate. Tax is now worked out per rate and spread over the lines (principle 5). `allocate` used floating-point rounding and gave leftover units to the last line, even a zero-weight one. It now splits fairly and exactly (principle 6).\n- **Fully refunded invoices not ending at zero:**\n  - Tax on each staged credit note was rounded on its own. Cumulative tax now follows cumulative net, so the credits end on the full tax.\n  - Credits were capped at the pre-discount amount. They are now capped at net after discount, and credit given by later plan-change or cancellation invoices counts too.\n- **Discounted customer refunded more than they paid:** the credit used list price (see the proration fix above). A mid-period change also wrongly used up a coupon period. The change invoice's discount also failed when the change fell in a coupon's final period.\n- **Tax queried after paying from account credit:** account credit was being deducted from line nets before tax. It now only reduces the amount due, and `invoiceBalance` subtracts it.\n\n## Other defects found\n- A plan change wiped any change scheduled for the next renewal.\n- Credit note refunds ignored the cash-only rule (principle 8). `settleCreditNote` now takes an optional `cashAvailable`: cash goes back up to cash received, and the rest goes to account credit. If you omit it, the old behaviour applies.\n- Invoice numbers were consumed even when a request then failed, leaving gaps. They are now taken only after the invoice builds.\n- The tax report and monthly revenue mixed credit notes from other currencies. Both now filter by currency.\n- Deferred revenue ignored credit notes. It now deducts them.\n\n## Docs\nOnly `docs/rounding.md` was wrong. It said half-up is the default, but the code and the 0.4.0 changelog entry say half-even at finance's request. I corrected it, added `half-even` to the table, and added a section on how splits and tax are spread. `proration.md` and `principles.md` were already right. I also added a 0.9.3 changelog entry.\n\n## Unsure about\n- **Deferred revenue:** I made it net off credit notes. The brief doesn't say whether credit notes should reduce it, so that is my judgement.\n- **MRR forecast:** `monthlyRecurringRevenue` still uses the current plan, not the plan scheduled for renewal. I left it alone.\n- **Backdated changes:** a plan change dated before the current terms started now throws. Before, it priced silently.\n- **\"Long history doesn't reconcile\":** I couldn't reproduce this as a single cause. The fixes above (tax drift, unbounded credits, account credit, cash refunds) should account for much of it. I recommend running `unbalancedJournalEntries()` against real data after deploying."
+}

@@ -1,0 +1,15 @@
+.venv/
+tools/opencode/
+.opencode/
+.claude-config/
+.codex-home/
+runs/*
+!runs/.gitkeep
+smoke-workspace/result.txt
+*.log
+.env
+.env.*
+# Each harness's full system prompt and tool definitions. Recreate with -CaptureRequests.
+results/first-requests/
+
+pins/node_modules/
