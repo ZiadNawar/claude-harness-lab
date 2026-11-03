@@ -14,7 +14,8 @@ The third route is deliberately labelled `Codex + LiteLLM + Claude`. LiteLLM is 
 
 - Every run's trace is in `results/traces/`, and each level's runs are side by side in `results/level-<n>-comparison.md`. `protocol.md` has the rules and when each was set.
 - Each condition ran only a few times, and the model's answers vary between runs, so the results describe what happened and don't rank the harnesses.
-- Claude Code started most of these runs and the Codex policy probe at my request, on my machine, with my key.
+- Claude Code started all of these runs and the Codex policy probe at my request, on my machine, with my key.
+- Known issue: the generated tables overcount blocked steps (the tracer counts the word EPERM in output as a block) and record Codex's 10-second yields as passing test runs. Hand-checked Level 3 blocks: Claude Code 11 and 13, OpenCode 0 and 0. A tracer fix is in progress.
 - Not done: the three interactive Task A runs, Task B and Level 4. Level 4 and Task B use private code, which isn't in this repo.
 
 ## What is installed locally
